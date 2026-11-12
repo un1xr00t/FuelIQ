@@ -5,6 +5,8 @@ import Vision
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+  private var photoPicker: AnyObject?
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -14,6 +16,31 @@ import Vision
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    let pickerChannel = FlutterMethodChannel(
+      name: "fueliq/photo_picker",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    pickerChannel.setMethodCallHandler { [weak self] call, result in
+      guard call.method == "pickPhoto" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard #available(iOS 17.0, *) else {
+        result(FlutterError(code: "inline_picker_unsupported", message: nil, details: nil))
+        return
+      }
+      guard let self, var presenter = UIApplication.shared.connectedScenes
+        .compactMap({ $0 as? UIWindowScene })
+        .flatMap(\.windows)
+        .first(where: \.isKeyWindow)?.rootViewController else {
+        result(FlutterError(code: "picker_unavailable", message: nil, details: nil))
+        return
+      }
+      while let presented = presenter.presentedViewController { presenter = presented }
+      let picker = self.photoPicker as? FuelPhotoPicker ?? FuelPhotoPicker()
+      self.photoPicker = picker
+      picker.presentPicker(presenter: presenter, result: result)
+    }
     let channel = FlutterMethodChannel(
       name: "fueliq/fuel_photo",
       binaryMessenger: engineBridge.applicationRegistrar.messenger()

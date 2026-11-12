@@ -1,13 +1,26 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+
+const _pickerChannel = MethodChannel('fueliq/photo_picker');
 
 Future<XFile?> showPhotoPicker(
   BuildContext context, {
   required String title,
   String? message,
 }) async {
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    try {
+      final path = await _pickerChannel.invokeMethod<String>('pickPhoto');
+      return path == null ? null : XFile(path);
+    } on PlatformException catch (error) {
+      if (error.code != 'inline_picker_unsupported') rethrow;
+    }
+    if (!context.mounted) return null;
+  }
   final source = await showCupertinoModalPopup<ImageSource>(
     context: context,
     builder: (sheetContext) => CupertinoActionSheet(
@@ -35,7 +48,7 @@ Future<XFile?> showPhotoPicker(
 
 Future<void> discardPickedPhoto(XFile photo) async {
   final file = File(photo.path).absolute;
-  // image_picker_ios returns an app-owned copy in the temporary directory.
+  // Both iOS pickers return an app-owned copy in the temporary directory.
   if (!Platform.isIOS ||
       file.parent.path != Directory.systemTemp.absolute.path) {
     return;
