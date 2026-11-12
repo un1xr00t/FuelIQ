@@ -4,6 +4,7 @@ import '../../data/fuel_records.dart';
 import '../../data/fuel_store.dart';
 import '../../design_system/fuel_page.dart';
 import '../../design_system/fuel_theme.dart';
+import '../../design_system/photo_picker.dart';
 import '../../design_system/record_controls.dart';
 import 'vehicle_photo.dart';
 
@@ -95,17 +96,26 @@ class _VehicleEditorState extends State<_VehicleEditor> {
   }
 
   Future<void> _pick() async {
+    if (_busy) return;
+    FocusScope.of(context).unfocus();
     setState(() => _busy = true);
     try {
-      final photo = await chooseVehiclePhoto();
-      if (mounted && photo != null) setState(() => _photo = photo);
+      final file = await showPhotoPicker(context, title: 'Vehicle photo');
+      if (file == null) return;
+      try {
+        if (!mounted) return;
+        final photo = await prepareVehiclePhoto(file);
+        if (mounted) setState(() => _photo = photo);
+      } finally {
+        await discardPickedPhoto(file);
+      }
     } on FormatException catch (error) {
       if (mounted) await showRecordError(context, error.message);
     } catch (_) {
       if (mounted) {
         await showRecordError(
           context,
-          'Could not read that photo. Choose a different image.',
+          'Could not open the photo. Check camera access or choose another image.',
         );
       }
     } finally {

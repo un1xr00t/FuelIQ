@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../data/fuel_records.dart';
 import '../../data/fuel_store.dart';
 import '../../design_system/fuel_page.dart';
 import '../../design_system/fuel_theme.dart';
+import '../../design_system/photo_picker.dart';
 import '../../design_system/record_controls.dart';
 import 'fuel_photo_parser.dart';
 import 'fuel_photo_scanner.dart';
@@ -160,6 +160,7 @@ class _FillUpEditorState extends State<_FillUpEditor> {
   bool _showDate = false;
   bool _busy = false;
   bool _scanning = false;
+  bool _pickingPhoto = false;
   String? _scanStatus;
   final _readings = <FuelPhotoField, PhotoReading>{};
 
@@ -221,36 +222,27 @@ class _FillUpEditorState extends State<_FillUpEditor> {
   }
 
   Future<void> _scan() async {
+    if (_pickingPhoto || _scanning) return;
     FocusScope.of(context).unfocus();
-    final source = await showCupertinoModalPopup<ImageSource>(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: const Text('Scan a fill-up'),
-        message: const Text(
-          'Frame the receipt or completed pump display, including labels. '
-          'For octane, capture the grade marked for this sale.',
-        ),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(context, ImageSource.camera),
-            child: const Text('Take photo'),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(context, ImageSource.gallery),
-            child: const Text('Choose from Photos'),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-      ),
-    );
-    if (!mounted || source == null) return;
-    setState(() => _scanning = true);
+    setState(() => _pickingPhoto = true);
     try {
-      final readings = await scanFuelPhoto(source);
-      if (!mounted || readings == null) return;
+      final photo = await showPhotoPicker(
+        context,
+        title: 'Scan a fill-up',
+        message:
+            'Frame the receipt or completed pump display, including labels. '
+            'For octane, capture the grade marked for this sale.',
+      );
+      if (photo == null) return;
+      final Map<FuelPhotoField, PhotoReading> readings;
+      try {
+        if (!mounted) return;
+        setState(() => _scanning = true);
+        readings = await scanFuelPhoto(photo);
+      } finally {
+        await discardPickedPhoto(photo);
+      }
+      if (!mounted) return;
       var conflict = false;
       var added = false;
       setState(() {
@@ -283,7 +275,12 @@ class _FillUpEditorState extends State<_FillUpEditor> {
         });
       }
     } finally {
-      if (mounted) setState(() => _scanning = false);
+      if (mounted) {
+        setState(() {
+          _pickingPhoto = false;
+          _scanning = false;
+        });
+      }
     }
   }
 
@@ -450,7 +447,7 @@ class _FillUpEditorState extends State<_FillUpEditor> {
       context,
     ).datePickerMediumDate(_date);
     const decimal = TextInputType.numberWithOptions(decimal: true);
-    final disabled = _busy || _scanning;
+    final disabled = _busy || _pickingPhoto || _scanning;
     return FuelPage(
       title: widget.entry != null
           ? 'Edit fill-up'

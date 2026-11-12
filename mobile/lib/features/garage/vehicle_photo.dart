@@ -5,12 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 
-Future<String?> chooseVehiclePhoto() async {
-  final file = await ImagePicker().pickImage(
-    source: ImageSource.gallery,
-    requestFullMetadata: false,
-  );
-  if (file == null) return null;
+Future<String> prepareVehiclePhoto(XFile file) async {
   if (await file.length() > 20 * 1024 * 1024) {
     throw const FormatException('Choose an image under 20 MB.');
   }

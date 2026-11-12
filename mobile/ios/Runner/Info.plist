@@ -27,7 +27,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose a vehicle photo or scan a fuel receipt or pump photo.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Photograph a fuel receipt or pump display to propose fill-up details.</string>
+	<string>Take a vehicle photo or photograph a receipt or pump display to propose fill-up details.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

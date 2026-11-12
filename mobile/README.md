@@ -16,7 +16,7 @@ For a physical iPhone, open `ios/Runner.xcworkspace` in Xcode and select your de
 
 The app runs offline and needs no environment variables, account, API keys, or backend. `path_provider` locates the iOS Application Support directory. A versioned JSON snapshot stores vehicle and fill-up IDs, primary vehicle, and appearance. Writes replace the snapshot atomically. Amounts use integer cents and thousandths for US gallons and price per gallon. A difference over two cents prompts for confirmation and preserves the entered total.
 
-`image_picker` uses the system photo library picker without requesting full metadata. FuelIQ keeps a resized copy without EXIF in its local snapshot. Replacing, removing, or deleting a saved vehicle photo removes that copy from the next snapshot. A vehicle with saved fill-ups can be deleted once its entries are removed.
+Garage and Fuel Log use a shared photo picker sheet based on Journal Intelligence. **Take photo** opens the iOS camera. **Choose from Photos** opens the system library through `image_picker` without requesting full metadata. Garage keeps a resized copy without EXIF in its local snapshot and attempts to remove the temporary original after processing. Replacing, removing, or deleting a saved vehicle photo removes the resized copy from the next snapshot. A vehicle with saved fill-ups can be deleted once its entries are removed.
 
 ## Scan a fill-up
 
@@ -39,4 +39,4 @@ With Flutter 3.41.7 and Xcode 27.1, `flutter build ios --simulator` can fail whe
 
 Add a vehicle with a photo, log a partial fill-up, and compare Home spending with the receipt. Relaunch and verify the vehicle, photo, entry, and appearance persist. Edit the entry and verify the updated total, then delete it and verify the total clears. Try the photo picker with a PNG or JPEG in the simulator and with a real photo on an iPhone. Check VoiceOver and large text on both editors.
 
-On an iPhone, scan a receipt and a completed pump display in Airplane Mode. Check the proposals against the images, including a receipt with non-fuel purchases and a pump with several octane buttons. Try denying camera access, canceling the picker, and scanning an unreadable photo. Verify that manual entry and saving still work.
+On an iPhone, take a vehicle photo in Garage and verify it persists after saving and relaunching. Try replacing it from Photos, canceling the replacement, and denying camera access. Scan a receipt and a completed pump display in Airplane Mode. Check the proposals against the images, including a receipt with non-fuel purchases and a pump with several octane buttons. Try scanning an unreadable photo and verify that manual entry and saving still work.

@@ -119,6 +119,26 @@ void main() {
 
     await selectTab(tester, 'Garage');
     await tapText('Add vehicle');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    const picker = MethodChannel('plugins.flutter.io/image_picker');
+    var cameraOpened = false;
+    messenger.setMockMethodCallHandler(picker, (call) async {
+      expect(call.method, 'pickImage');
+      expect(call.arguments['source'], 0);
+      expect(call.arguments['requestFullMetadata'], false);
+      cameraOpened = true;
+      return null;
+    });
+    addTearDown(() => messenger.setMockMethodCallHandler(picker, null));
+    await tapText('Choose photo');
+    expect(find.text('Choose from Photos'), findsOneWidget);
+    await tapText('Cancel');
+    expect(cameraOpened, isFalse);
+    await tapText('Choose photo');
+    await tapText('Take photo');
+    expect(cameraOpened, isTrue);
+    expect(find.text('Choose photo'), findsOneWidget);
     await enter(['2024', 'Honda', 'Civic']);
     await tapText('Save vehicle');
     expect(find.text('2024 Honda Civic'), findsOneWidget);
@@ -135,11 +155,12 @@ void main() {
     addTearDown(() => directory.deleteSync(recursive: true));
     final photo = File('${directory.path}/receipt.jpg')
       ..writeAsStringSync('photo');
-    final messenger =
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-    const picker = MethodChannel('plugins.flutter.io/image_picker');
     const scanner = MethodChannel('fueliq/fuel_photo');
-    messenger.setMockMethodCallHandler(picker, (_) async => photo.path);
+    messenger.setMockMethodCallHandler(picker, (call) async {
+      expect(call.arguments['source'], 1);
+      expect(call.arguments['requestFullMetadata'], false);
+      return photo.path;
+    });
     messenger.setMockMethodCallHandler(scanner, (call) async {
       expect(call.method, 'recognize');
       expect(call.arguments, photo.path);
@@ -156,7 +177,6 @@ void main() {
       ];
     });
     addTearDown(() {
-      messenger.setMockMethodCallHandler(picker, null);
       messenger.setMockMethodCallHandler(scanner, null);
     });
     await tapText('Scan receipt or pump');
