@@ -56,6 +56,7 @@ void main() {
       total: 3999,
       full: false,
       odometer: 20120,
+      octane: 93,
     );
     store.dispose();
 
@@ -66,6 +67,7 @@ void main() {
     expect(reopened.data.appearance, 'light');
     expect(reopened.data.spending, 3999);
     expect(reopened.data.fillUps.single.full, isFalse);
+    expect(reopened.data.fillUps.single.octane, 93);
     await expectLater(reopened.deleteVehicle(first), throwsStateError);
     final entry = reopened.data.fillUps.single;
     await reopened.saveFillUp(

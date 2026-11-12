@@ -188,6 +188,7 @@ class FuelStore extends ChangeNotifier {
     required int total,
     required bool full,
     int? odometer,
+    int? octane,
   }) async {
     if (data.vehicle(vehicleId) == null ||
         volume <= 0 ||
@@ -196,6 +197,7 @@ class FuelStore extends ChangeNotifier {
         price > 99999 ||
         total <= 0 ||
         total > 999999 ||
+        (octane != null && !isUsOctane(octane)) ||
         (odometer != null && (odometer < 0 || odometer > 9999999)) ||
         (id != null && !data.fillUps.any((entry) => entry.id == id))) {
       throw ArgumentError('Invalid fill-up.');
@@ -209,6 +211,7 @@ class FuelStore extends ChangeNotifier {
       total: total,
       full: full,
       odometer: odometer,
+      octane: octane,
     );
     final entries =
         [

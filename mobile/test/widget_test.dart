@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fueliq/app/fuel_iq_app.dart';
 import 'package:fueliq/design_system/fuel_theme.dart';
@@ -100,6 +103,7 @@ void main() {
     await tester.pumpAndSettle();
 
     Future<void> tapText(String text) async {
+      await tester.ensureVisible(find.text(text));
       await tester.tap(find.text(text));
       await tester.pumpAndSettle();
     }
@@ -119,21 +123,61 @@ void main() {
     await tapText('Save vehicle');
     expect(find.text('2024 Honda Civic'), findsOneWidget);
     await selectTab(tester, 'Fuel Log');
-    await tapText('Log fill-up');
+    await tapText('Scan a fill-up');
+    expect(find.text('Take photo'), findsOneWidget);
+    expect(find.text('Choose from Photos'), findsOneWidget);
+    await tapText('Cancel');
+    expect(find.text('Review fill-up'), findsWidgets);
     await tapText('Save fill-up');
     expect(find.text('Check this entry'), findsOneWidget);
     await tapText('OK');
-    await enter(['10.000', '3.999', '40.50']);
+    final directory = Directory.systemTemp.createTempSync('fueliq-scan-test');
+    addTearDown(() => directory.deleteSync(recursive: true));
+    final photo = File('${directory.path}/receipt.jpg')
+      ..writeAsStringSync('photo');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    const picker = MethodChannel('plugins.flutter.io/image_picker');
+    const scanner = MethodChannel('fueliq/fuel_photo');
+    messenger.setMockMethodCallHandler(picker, (_) async => photo.path);
+    messenger.setMockMethodCallHandler(scanner, (call) async {
+      expect(call.method, 'recognize');
+      expect(call.arguments, photo.path);
+      return [
+        for (final text in ['Gallons 9.95', r'Total $60.00', 'Grade 93'])
+          {
+            'text': text,
+            'confidence': 0.98,
+            'x': 0.0,
+            'y': 0.0,
+            'width': 0.0,
+            'height': 0.0,
+          },
+      ];
+    });
+    addTearDown(() {
+      messenger.setMockMethodCallHandler(picker, null);
+      messenger.setMockMethodCallHandler(scanner, null);
+    });
+    await tapText('Scan receipt or pump');
+    await tapText('Choose from Photos');
+    expect(find.text('9.950'), findsOneWidget);
+    expect(find.text('60.00'), findsOneWidget);
+    expect(find.text('93'), findsOneWidget);
+    await tapText('Calculate price from total and gallons');
+    expect(find.text('6.030'), findsOneWidget);
+    await enter(['10.000', '40.50', '3.999', '93']);
     await tapText('Save fill-up');
     expect(find.text('Total differs'), findsOneWidget);
     await tapText('Save entered total');
     expect(find.text(r'$40.50 · 10.000 gal'), findsOneWidget);
+    expect(find.textContaining('93 AKI'), findsOneWidget);
     await selectTab(tester, 'Home');
     expect(find.text(r'$40.50'), findsOneWidget);
 
     await selectTab(tester, 'Fuel Log');
     await tapText(r'$40.50 · 10.000 gal');
-    await enter(['10.000', '3.999', '39.99']);
+    await enter(['10.000', '39.99', '3.999']);
     await tapText('Save fill-up');
     await tapText(r'$39.99 · 10.000 gal');
     await tapText('Delete fill-up');

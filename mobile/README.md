@@ -18,6 +18,14 @@ The app runs offline and needs no environment variables, account, API keys, or b
 
 `image_picker` uses the system photo library picker without requesting full metadata. FuelIQ keeps a resized copy without EXIF in its local snapshot. Replacing, removing, or deleting a saved vehicle photo removes that copy from the next snapshot. A vehicle with saved fill-ups can be deleted once its entries are removed.
 
+## Scan a fill-up
+
+Add a vehicle, open Fuel Log, and tap **Scan a fill-up**. Take a photo or select one from Photos. Use a completed pump display or fuel receipt with the labels visible. You can scan another photo to fill remaining blanks. Check the editable values, enter any missing fields, and tap **Save fill-up**.
+
+[Apple Vision](https://developer.apple.com/documentation/vision/recognizing-text-in-images) reads text locally. FuelIQ proposes US gallons, total paid, price per gallon, and explicitly identified octane (85–99 AKI). A row matched by position or read with lower OCR confidence is labeled uncertain. Check that a receipt total covers fuel only. If the price is missing, you can calculate it from the entered gallons and total. A row of octane buttons does not identify the selected grade. Scan a receipt with the grade printed or enter it manually.
+
+The scanner accepts JPEG, PNG, and HEIC/HEIF photos up to 30 MB and 60 megapixels. It uses image orientation to read rotated photos. FuelIQ requests no full photo metadata, stores no scan image or raw OCR text with a fill-up, and attempts to delete the app's temporary picker copy when scanning ends. No Gemini key, Apple Intelligence setting, or upload is required. EXIF-based dates, station matching, and OCR of addresses or dates are future work.
+
 ## Verification
 
 ```sh
@@ -30,3 +38,5 @@ flutter run --no-resident -d <simulator-id>
 With Flutter 3.41.7 and Xcode 27.1, `flutter build ios --simulator` can fail when targeting both simulator architectures. Use the device-specific command above to build and launch on a booted simulator.
 
 Add a vehicle with a photo, log a partial fill-up, and compare Home spending with the receipt. Relaunch and verify the vehicle, photo, entry, and appearance persist. Edit the entry and verify the updated total, then delete it and verify the total clears. Try the photo picker with a PNG or JPEG in the simulator and with a real photo on an iPhone. Check VoiceOver and large text on both editors.
+
+On an iPhone, scan a receipt and a completed pump display in Airplane Mode. Check the proposals against the images, including a receipt with non-fuel purchases and a pump with several octane buttons. Try denying camera access, canceling the picker, and scanning an unreadable photo. Verify that manual entry and saving still work.

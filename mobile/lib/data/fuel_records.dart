@@ -46,6 +46,7 @@ class FillUp {
     required this.total,
     required this.full,
     this.odometer,
+    this.octane,
   });
 
   final int id;
@@ -56,6 +57,7 @@ class FillUp {
   final int total; // US cents paid.
   final bool full;
   final int? odometer;
+  final int? octane;
 
   factory FillUp.fromJson(Map<String, Object?> json) => FillUp(
     id: json['id'] as int,
@@ -66,6 +68,7 @@ class FillUp {
     total: json['total'] as int,
     full: json['full'] as bool,
     odometer: json['odometer'] as int?,
+    octane: json['octane'] as int?,
   );
 
   Map<String, Object?> toJson() => {
@@ -77,11 +80,14 @@ class FillUp {
     'total': total,
     'full': full,
     'odometer': odometer,
+    if (octane != null) 'octane': octane,
   };
 
   int get expectedTotal => (volume * price + 5000) ~/ 10000;
   bool get hasDiscrepancy => (total - expectedTotal).abs() > 2;
 }
+
+bool isUsOctane(int value) => value >= 85 && value <= 99;
 
 int? parseFixed(String input, int places, {required int maximum}) {
   final match = RegExp(
