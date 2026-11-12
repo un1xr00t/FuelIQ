@@ -12,6 +12,9 @@ enum Appearance {
 
   final String label;
   final Brightness? brightness;
+
+  static Appearance saved(String value) =>
+      values.where((option) => option.name == value).firstOrNull ?? dark;
 }
 
 class SettingsPage extends StatelessWidget {
@@ -48,16 +51,22 @@ class SettingsPage extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                         vertical: FuelTheme.gap,
                       ),
-                      foregroundColor: FuelTheme.ink,
+                      foregroundColor: FuelTheme.resolve(
+                        context,
+                        FuelTheme.ink,
+                      ),
                       onPressed: () => onAppearanceChanged(option),
                       child: Row(
                         children: [
                           Expanded(child: Text(option.label)),
                           if (option == appearance)
-                            const ExcludeSemantics(
+                            ExcludeSemantics(
                               child: Icon(
                                 CupertinoIcons.check_mark,
-                                color: FuelTheme.accent,
+                                color: FuelTheme.resolve(
+                                  context,
+                                  FuelTheme.accent,
+                                ),
                                 size: 20,
                               ),
                             ),

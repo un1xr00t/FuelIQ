@@ -4,7 +4,7 @@
 
 **Primary product:** Flutter mobile application, launching on **iOS first**. Android may follow later using the same Flutter codebase. This is not a React/web frontend project.
 
-> Status: Flutter iOS foundation implemented. Garage and Fuel Log persistence are upcoming milestones. Claims about external data availability, licensing, and API pricing must be verified before implementation.
+> Status: Flutter iOS foundation, offline Garage, and manual Fuel Log implemented. Station discovery and advanced analytics are upcoming milestones. Claims about external data availability, licensing, and API pricing must be verified before implementation.
 
 ## Vision
 

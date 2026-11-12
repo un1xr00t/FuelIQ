@@ -1,40 +1,71 @@
 import 'package:flutter/cupertino.dart';
 
+import '../data/fuel_store.dart';
 import '../design_system/fuel_page.dart';
+import '../design_system/record_controls.dart';
+import '../features/fill_ups/fuel_log_page.dart';
+import '../features/garage/garage_page.dart';
 import '../design_system/fuel_theme.dart';
 import '../features/home/home_page.dart';
 import '../features/settings/settings_page.dart';
 
 class FuelIqApp extends StatefulWidget {
-  const FuelIqApp({super.key});
+  const FuelIqApp({super.key, this.store});
+
+  final FuelStore? store;
 
   @override
   State<FuelIqApp> createState() => _FuelIqAppState();
 }
 
 class _FuelIqAppState extends State<FuelIqApp> {
-  final _appearance = ValueNotifier(Appearance.system);
+  late final _store = widget.store ?? FuelStore();
+  late Future<void> _load = _store.load();
 
   @override
   void dispose() {
-    _appearance.dispose();
+    if (widget.store == null) _store.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: _appearance,
-      builder: (context, appearance, child) {
-        return CupertinoApp(
-          title: 'FuelIQ',
-          debugShowCheckedModeBanner: false,
-          theme: FuelTheme.data(appearance.brightness),
-          home: _AppShell(appearance: _appearance),
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: _store,
+    builder: (context, _) => CupertinoApp(
+      title: 'FuelIQ',
+      debugShowCheckedModeBanner: false,
+      theme: FuelTheme.data(
+        Appearance.saved(_store.data.appearance).brightness,
+      ),
+      home: FutureBuilder<void>(
+        future: _load,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const CupertinoPageScaffold(
+              child: Center(child: CupertinoActivityIndicator()),
+            );
+          }
+          if (snapshot.hasError) {
+            return FuelPage(
+              title: 'FuelIQ',
+              children: [
+                const FuelEmptyState(
+                  icon: CupertinoIcons.exclamationmark_circle,
+                  title: 'Couldn’t open your saved data',
+                  message: 'Try loading it again.',
+                ),
+                CupertinoButton(
+                  onPressed: () => setState(() => _load = _store.load()),
+                  child: const Text('Retry'),
+                ),
+              ],
+            );
+          }
+          return _AppShell(store: _store);
+        },
+      ),
+    ),
+  );
 }
 
 enum _Destination {
@@ -58,9 +89,9 @@ enum _Destination {
 }
 
 class _AppShell extends StatefulWidget {
-  const _AppShell({required this.appearance});
+  const _AppShell({required this.store});
 
-  final ValueNotifier<Appearance> appearance;
+  final FuelStore store;
 
   @override
   State<_AppShell> createState() => _AppShellState();
@@ -93,6 +124,7 @@ class _AppShellState extends State<_AppShell> {
       tabBuilder: (context, index) => CupertinoTabView(
         builder: (context) => switch (_Destination.values[index]) {
           _Destination.home => HomePage(
+            store: widget.store,
             openGarage: () => _open(_Destination.garage),
             openFuelLog: () => _open(_Destination.fuelLog),
             openStations: () => _open(_Destination.stations),
@@ -107,32 +139,27 @@ class _AppShellState extends State<_AppShell> {
               ),
             ],
           ),
-          _Destination.fuelLog => const FuelPage(
-            title: 'Fuel Log',
-            children: [
-              FuelEmptyState(
-                icon: CupertinoIcons.drop,
-                title: 'No fill-ups yet',
-                message:
-                    'Manual fill-up logging is coming in a later milestone.',
-              ),
-            ],
+          _Destination.fuelLog => FuelLogPage(
+            store: widget.store,
+            openGarage: () => _open(_Destination.garage),
           ),
-          _Destination.garage => const FuelPage(
-            title: 'My Garage',
-            children: [
-              FuelEmptyState(
-                icon: CupertinoIcons.car_detailed,
-                title: 'No vehicles yet',
-                message: 'Vehicle profiles are coming in the next milestone.',
-              ),
-            ],
-          ),
-          _Destination.settings => ValueListenableBuilder(
-            valueListenable: widget.appearance,
-            builder: (context, appearance, child) => SettingsPage(
-              appearance: appearance,
-              onAppearanceChanged: (value) => widget.appearance.value = value,
+          _Destination.garage => GaragePage(store: widget.store),
+          _Destination.settings => ListenableBuilder(
+            listenable: widget.store,
+            builder: (context, _) => SettingsPage(
+              appearance: Appearance.saved(widget.store.data.appearance),
+              onAppearanceChanged: (value) async {
+                try {
+                  await widget.store.setAppearance(value.name);
+                } catch (_) {
+                  if (context.mounted) {
+                    await showRecordError(
+                      context,
+                      'Could not save appearance. Try again.',
+                    );
+                  }
+                }
+              },
             ),
           ),
         },
