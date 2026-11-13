@@ -50,6 +50,7 @@ void main() {
     expect(find.byIcon(CupertinoIcons.drop), findsOneWidget);
     expect(find.text('0.44 mi'), findsOneWidget);
     expect(find.text('Address unavailable'), findsOneWidget);
+    expect(find.text('TOP TIER™ status unavailable'), findsNWidgets(2));
     await tester.tap(find.text('Sunoco'));
     expect(opened, isTrue);
     expect(tester.takeException(), isNull);

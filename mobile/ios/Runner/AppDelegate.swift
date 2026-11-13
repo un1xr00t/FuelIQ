@@ -23,6 +23,12 @@ import Vision
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
     locationChannel.setMethodCallHandler { [stationLocation] call, result in
+      if call.method == "openTopTierFinder",
+        let url = URL(string: "https://stationfinder.toptiergas.com/")
+      {
+        UIApplication.shared.open(url, options: [:]) { opened in result(opened) }
+        return
+      }
       guard call.method == "currentLocation" else {
         result(FlutterMethodNotImplemented)
         return

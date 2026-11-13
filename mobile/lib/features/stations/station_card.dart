@@ -113,6 +113,14 @@ class StationCard extends StatelessWidget {
                         maxLines: stackDistance ? null : 2,
                         overflow: stackDistance ? null : TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: FuelTheme.compact),
+                      Text(
+                        'TOP TIER™ status unavailable',
+                        style: FuelTheme.body.copyWith(
+                          color: muted,
+                          fontSize: 12,
+                        ),
+                      ),
                       if (stackDistance && distance != null) ...[
                         const SizedBox(height: 4),
                         distance,

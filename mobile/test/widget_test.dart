@@ -77,6 +77,26 @@ void main() {
     expect(find.byType(CupertinoSearchTextField), findsOneWidget);
   });
 
+  testWidgets('Stations opens the official finder on tap', (tester) async {
+    const channel = MethodChannel('fueliq/station_location');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    final calls = <String>[];
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add(call.method);
+      expect(call.arguments, isNull);
+      return true;
+    });
+    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+    await tester.pumpWidget(const FuelIqApp());
+    await tester.pumpAndSettle();
+    await selectTab(tester, 'Stations');
+    expect(calls, isEmpty);
+    await tester.tap(find.text('Open official Station Finder'));
+    await tester.pumpAndSettle();
+    expect(calls, ['openTopTierFinder']);
+  });
+
   testWidgets('appearance follows system and can be overridden', (
     tester,
   ) async {
