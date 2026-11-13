@@ -47,6 +47,7 @@ class FillUp {
     required this.full,
     this.odometer,
     this.octane,
+    this.station,
   });
 
   final int id;
@@ -58,6 +59,7 @@ class FillUp {
   final bool full;
   final int? odometer;
   final int? octane;
+  final String? station;
 
   factory FillUp.fromJson(Map<String, Object?> json) => FillUp(
     id: json['id'] as int,
@@ -69,6 +71,7 @@ class FillUp {
     full: json['full'] as bool,
     odometer: json['odometer'] as int?,
     octane: json['octane'] as int?,
+    station: json['station'] as String?,
   );
 
   Map<String, Object?> toJson() => {
@@ -81,6 +84,7 @@ class FillUp {
     'full': full,
     'odometer': odometer,
     if (octane != null) 'octane': octane,
+    if (station != null) 'station': station,
   };
 
   int get expectedTotal => (volume * price + 5000) ~/ 10000;

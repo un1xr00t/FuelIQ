@@ -40,6 +40,7 @@ The product should feel like an established, meticulously refined premium automo
 - Present premium station cards with reusable locally hosted brand logos, address, supported fuel grades when verified, and provenance/freshness indicators.
 - Detail pages show station identity, known grades, available fuel research, inspection/compliance records where public, and links to official evidence.
 - Resolve station identity from coordinates using spatial queries; when multiple nearby candidates exist, ask the user to confirm.
+- Fuel Log uses photo GPS with the bundled Pennsylvania catalog to suggest stations. Users can confirm a suggestion or enter a station on any fill-up, including previously saved entries.
 - Offer an external Apple Maps/Google Maps link if desired, without embedding a map.
 - Station-specific photos via an appropriately licensed photo API or authorized uploads are optional later; do not permanently cache third-party photos unless license permits.
 

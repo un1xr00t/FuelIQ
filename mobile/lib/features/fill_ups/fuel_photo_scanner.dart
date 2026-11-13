@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../stations/station_catalog.dart';
 import 'fuel_photo_parser.dart';
 
 const _channel = MethodChannel('fueliq/fuel_photo');
@@ -13,6 +14,7 @@ typedef FuelPhotoScan = ({
   Map<FuelPhotoField, PhotoReading> readings,
   List<PumpDisplay> displays,
   DateTime? capturedAt,
+  StationLocation? location,
 });
 
 Future<FuelPhotoScan> scanFuelPhoto(XFile photo) async {
@@ -33,6 +35,7 @@ FuelPhotoScan decodeFuelPhotoScan(Map<String, Object?> response) {
   );
   return (
     readings: readings,
+    location: photoStationLocation(response),
     capturedAt: parsePhotoCaptureDate(
       response['capturedAt'] as String?,
       response['captureOffset'] as String?,
@@ -71,6 +74,25 @@ Map<FuelPhotoField, PhotoReading> combinePhotoReadings(
     }
   }
   return combined;
+}
+
+StationLocation? photoStationLocation(Map<String, Object?>? metadata) {
+  final latitude = metadata?['latitude'];
+  final longitude = metadata?['longitude'];
+  if (latitude is! num ||
+      longitude is! num ||
+      !latitude.isFinite ||
+      !longitude.isFinite ||
+      latitude.abs() > 90 ||
+      longitude.abs() > 180 ||
+      (latitude == 0 && longitude == 0)) {
+    return null;
+  }
+  return (
+    latitude: latitude.toDouble(),
+    longitude: longitude.toDouble(),
+    accuracy: 0,
+  );
 }
 
 DateTime? parsePhotoCaptureDate(String? value, String? offset) {

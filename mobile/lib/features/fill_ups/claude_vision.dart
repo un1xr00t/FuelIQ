@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../data/fuel_records.dart';
+import '../stations/station_catalog.dart';
 import 'fuel_photo_parser.dart';
 import 'fuel_photo_scanner.dart';
 
@@ -23,6 +24,7 @@ Future<
   ({
     Map<FuelPhotoField, PhotoReading> readings,
     List<DateTime> captures,
+    List<StationLocation> locations,
     int failed,
   })
 >
@@ -31,6 +33,7 @@ scanWithClaude(List<XFile> photos) async {
   if (key == null || key.isEmpty) throw StateError('Claude key unavailable');
 
   final captures = <DateTime>[];
+  final locations = <StationLocation>[];
   final content = <Map<String, Object>>[];
   var failed = 0;
   for (final photo in photos) {
@@ -46,6 +49,9 @@ scanWithClaude(List<XFile> photos) async {
     if (bytes is! Uint8List) {
       failed++;
       continue;
+    }
+    if (photoStationLocation(prepared) case final location?) {
+      locations.add(location);
     }
     final capture = parsePhotoCaptureDate(
       prepared?['capturedAt'] as String?,
@@ -67,6 +73,7 @@ scanWithClaude(List<XFile> photos) async {
     return (
       readings: <FuelPhotoField, PhotoReading>{},
       captures: captures,
+      locations: locations,
       failed: failed,
     );
   }
@@ -114,6 +121,7 @@ scanWithClaude(List<XFile> photos) async {
     return (
       readings: parseClaudeReadings(text),
       captures: captures,
+      locations: locations,
       failed: failed,
     );
   } finally {

@@ -8,6 +8,7 @@ import '../../design_system/fuel_page.dart';
 import '../../design_system/fuel_theme.dart';
 import '../../design_system/photo_picker.dart';
 import '../../design_system/record_controls.dart';
+import '../stations/station_catalog.dart';
 import 'claude_vision.dart';
 import 'fuel_photo_parser.dart';
 import 'fuel_photo_scanner.dart';
@@ -138,6 +139,7 @@ class FuelLogPage extends StatelessWidget {
                                 '${fixed(entry.volume, 3)} gal',
                                 entry.full ? 'Full tank' : 'Partial tank',
                                 if (entry.octane != null) '${entry.octane} AKI',
+                                ?entry.station,
                                 if (entry.hasDiscrepancy) 'Total differs',
                               ].join(' · '),
                               style: FuelTheme.body.copyWith(
@@ -219,6 +221,8 @@ class _FillUpEditorState extends State<_FillUpEditor> {
   late int _vehicleId = widget.entry?.vehicleId ?? widget.store.data.primaryId!;
   late DateTime _date = widget.entry?.date.toLocal() ?? DateTime.now();
   bool _dateEdited = false;
+  late final _station = TextEditingController(text: widget.entry?.station);
+  List<Station> _stationSuggestions = const [];
   late bool _full = widget.entry?.full ?? true;
   bool _showDate = false;
   bool _busy = false;
@@ -246,6 +250,7 @@ class _FillUpEditorState extends State<_FillUpEditor> {
     _total.dispose();
     _odometer.dispose();
     _octane.dispose();
+    _station.dispose();
     super.dispose();
   }
 
@@ -286,6 +291,30 @@ class _FillUpEditorState extends State<_FillUpEditor> {
     );
   }
 
+  Future<List<Station>> _findStations(List<StationLocation> locations) async {
+    if (locations.isEmpty) return [];
+    try {
+      final catalog = await StationCatalog.load();
+      const radiusMiles = 150 / 1609.344;
+      final matches =
+          [
+            for (final station in catalog.stations)
+              if (station.isNamed &&
+                  locations.every(
+                    (location) => station.milesFrom(location) <= radiusMiles,
+                  ))
+                station,
+          ]..sort(
+            (a, b) => a
+                .milesFrom(locations.first)
+                .compareTo(b.milesFrom(locations.first)),
+          );
+      return matches.take(3).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
   Future<void> _scan() async {
     if (_pickingPhoto || _scanning) return;
     FocusScope.of(context).unfocus();
@@ -321,6 +350,7 @@ class _FillUpEditorState extends State<_FillUpEditor> {
       final conflicts = <FuelPhotoField>{};
       final displays = <PumpDisplay>[];
       final captures = <DateTime>[];
+      final locations = <StationLocation>[];
       final unmatchedPhotos = <List<PumpDisplay>>[];
       var failed = 0;
       if (useClaude) {
@@ -334,6 +364,7 @@ class _FillUpEditorState extends State<_FillUpEditor> {
           final result = await scanWithClaude(photos.nonNulls.toList());
           readings.addAll(result.readings);
           captures.addAll(result.captures);
+          locations.addAll(result.locations);
           failed =
               result.failed + photos.where((photo) => photo == null).length;
         } catch (_) {
@@ -367,6 +398,7 @@ class _FillUpEditorState extends State<_FillUpEditor> {
           if (result.capturedAt case final capture?) {
             if (!capture.isAfter(DateTime.now())) captures.add(capture);
           }
+          if (result.location case final location?) locations.add(location);
           displays.addAll(result.displays);
           if (result.readings.isEmpty) unmatchedPhotos.add(result.displays);
           for (final entry in result.readings.entries) {
@@ -425,6 +457,8 @@ class _FillUpEditorState extends State<_FillUpEditor> {
           );
         }
       }
+      final suggestions = await _findStations(locations);
+      if (!mounted) return;
       final empty = unmatchedPhotos.length;
       captures.sort();
       final dateConflict =
@@ -435,6 +469,7 @@ class _FillUpEditorState extends State<_FillUpEditor> {
           !_dateEdited &&
           widget.entry == null;
       setState(() {
+        _stationSuggestions = suggestions;
         if (useCapture) _date = captures.first;
         for (final entry in readings.entries) {
           final controller = _controller(entry.key);
@@ -629,6 +664,7 @@ class _FillUpEditorState extends State<_FillUpEditor> {
         full: candidate.full,
         odometer: odometer,
         octane: octane,
+        station: _station.text,
       ),
     );
   }
@@ -754,6 +790,28 @@ class _FillUpEditorState extends State<_FillUpEditor> {
         const SizedBox(height: FuelTheme.gap),
         FuelPanel(
           children: [
+            RecordField(
+              label: 'Gas station (optional)',
+              controller: _station,
+              maxLength: 250,
+            ),
+            if (_stationSuggestions.isNotEmpty)
+              const Text('Nearby stations from photo location'),
+            for (final station in _stationSuggestions)
+              CupertinoButton(
+                onPressed: disabled
+                    ? null
+                    : () {
+                        _station.text = station.address.isEmpty
+                            ? station.name
+                            : '${station.name} · ${station.address}';
+                      },
+                child: Text(
+                  station.address.isEmpty
+                      ? station.name
+                      : '${station.name} · ${station.address}',
+                ),
+              ),
             _scanField(FuelPhotoField.gallons, 'Gallons (US)', decimal),
             _scanField(FuelPhotoField.total, 'Total paid (USD)', decimal),
             _scanField(FuelPhotoField.price, 'Price per gallon (USD)', decimal),

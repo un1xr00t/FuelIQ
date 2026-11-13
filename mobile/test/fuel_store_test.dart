@@ -57,6 +57,7 @@ void main() {
       full: false,
       odometer: 20120,
       octane: 93,
+      station: ' Shell on Main Street ',
     );
     store.dispose();
 
@@ -68,6 +69,7 @@ void main() {
     expect(reopened.data.spending, 3999);
     expect(reopened.data.fillUps.single.full, isFalse);
     expect(reopened.data.fillUps.single.octane, 93);
+    expect(reopened.data.fillUps.single.station, 'Shell on Main Street');
     await expectLater(reopened.deleteVehicle(first), throwsStateError);
     final entry = reopened.data.fillUps.single;
     await reopened.saveFillUp(

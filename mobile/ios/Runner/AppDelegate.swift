@@ -185,12 +185,28 @@ import Security
       ] as CFDictionary),
       let jpeg = UIImage(cgImage: image).jpegData(compressionQuality: 0.94)
     else { return nil }
-    var result: [String: Any] = ["jpeg": FlutterStandardTypedData(bytes: jpeg)]
+    var result = photoLocation(properties)
+    result["jpeg"] = FlutterStandardTypedData(bytes: jpeg)
     if let exif = properties[kCGImagePropertyExifDictionary] as? [String: Any] {
       result["capturedAt"] = exif[kCGImagePropertyExifDateTimeOriginal as String]
       result["captureOffset"] = exif["OffsetTimeOriginal"]
     }
     return result
+  }
+
+  private static func photoLocation(_ properties: [CFString: Any]) -> [String: Any] {
+    guard let gps = properties[kCGImagePropertyGPSDictionary] as? [CFString: Any],
+      let latitude = gps[kCGImagePropertyGPSLatitude] as? Double,
+      let longitude = gps[kCGImagePropertyGPSLongitude] as? Double,
+      let latRef = gps[kCGImagePropertyGPSLatitudeRef] as? String,
+      let lonRef = gps[kCGImagePropertyGPSLongitudeRef] as? String,
+      ["N", "S"].contains(latRef), ["E", "W"].contains(lonRef),
+      (0...90).contains(latitude), (0...180).contains(longitude)
+    else { return [:] }
+    return [
+      "latitude": latRef == "S" ? -latitude : latitude,
+      "longitude": lonRef == "W" ? -longitude : longitude
+    ]
   }
 
   private static func recognizePhoto(at url: URL) -> Any {
@@ -209,7 +225,7 @@ import Security
           ] as CFDictionary) else {
       return FlutterError(code: "invalid_image", message: nil, details: nil)
     }
-    var metadata: [String: Any] = [:]
+    var metadata = photoLocation(properties)
     if let exif = properties[kCGImagePropertyExifDictionary] as? [String: Any],
       let capture = exif[kCGImagePropertyExifDateTimeOriginal as String] as? String {
       metadata["capturedAt"] = capture

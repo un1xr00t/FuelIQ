@@ -189,8 +189,11 @@ class FuelStore extends ChangeNotifier {
     required bool full,
     int? odometer,
     int? octane,
+    String? station,
   }) async {
-    if (data.vehicle(vehicleId) == null ||
+    final stationLabel = station?.trim();
+    if ((stationLabel?.length ?? 0) > 250 ||
+        data.vehicle(vehicleId) == null ||
         volume <= 0 ||
         volume > 999999 ||
         price <= 0 ||
@@ -212,6 +215,9 @@ class FuelStore extends ChangeNotifier {
       full: full,
       odometer: odometer,
       octane: octane,
+      station: stationLabel == null || stationLabel.isEmpty
+          ? null
+          : stationLabel,
     );
     final entries =
         [

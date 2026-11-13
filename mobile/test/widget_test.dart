@@ -227,7 +227,11 @@ void main() {
       await tester.pumpAndSettle();
 
       Future<void> tapText(String text) async {
-        await tester.ensureVisible(find.text(text));
+        await Scrollable.ensureVisible(
+          tester.element(find.text(text)),
+          alignment: 0.5,
+        );
+        await tester.pumpAndSettle();
         await tester.tap(find.text(text));
         await tester.pumpAndSettle();
       }
@@ -336,7 +340,7 @@ void main() {
       expect(find.text('93'), findsOneWidget);
       await tapText('Calculate price from total and gallons');
       expect(find.text('6.030'), findsOneWidget);
-      await enter(['10.000', '40.50', '3.999', '93']);
+      await enter(['', '10.000', '40.50', '3.999', '93']);
       await tapText('Save fill-up');
       expect(find.text('Total differs'), findsOneWidget);
       await tapText('Save entered total');
@@ -347,9 +351,11 @@ void main() {
 
       await selectTab(tester, 'Fuel Log');
       await tapText(r'$40.50');
-      await enter(['10.000', '39.99', '3.999']);
+      await enter(['Shell on Main Street', '10.000', '39.99', '3.999']);
       await tapText('Save fill-up');
+      expect(find.textContaining('Shell on Main Street'), findsOneWidget);
       await tapText(r'$39.99');
+      expect(find.text('Shell on Main Street'), findsOneWidget);
       await tapText('Delete fill-up');
       await tapText('Delete');
       expect(find.text('No fill-ups yet'), findsOneWidget);
