@@ -25,18 +25,21 @@ class PhotoText {
 }
 
 final _number = RegExp(r'^\s*[:=@]?\s*\$?\s*(\d{1,5}(?:\.\d{1,3})?)\s*$');
+final _misreadPrice = RegExp(r'^\s*\$?\s*(\d),\s+(\d{3})\s*$');
+final _leadingNumber = RegExp(r'^\$?\s*(\d{1,5}(?:\.\d{1,3})?)\s+');
+final _labelEnd = RegExp(r'^\s*[:=\$]?\s*$');
 final _rules =
     {
       FuelPhotoField.gallons: [r'(?:us\s+)?gal(?:lons?|s)?\.?'],
       FuelPhotoField.price: [
-        r'price\s*(?:per|/)\s*(?:us\s+)?gal(?:lons?)?\.?|price\s*/\s*g|unit price|ppg',
+        r'price\s*(?:per|/)\s*\$?\s*(?:us\s+)?gal(?:lons?)?\.?|price\s*/\s*g|\$\s*/\s*gal(?:lons?)?\.?|unit price|ppg',
       ],
       FuelPhotoField.total: [
         r'fuel total|total fuel|fuel sale',
-        r'total sale|sale total|amount paid|total paid|total due|grand total|this sale|sale(?=\s*\$)|total',
+        r'total sale|sale total|amount paid|total paid|total due|grand total|(?:\$\s*)?this sale|sale(?=\s*\$)|total',
       ],
       FuelPhotoField.octane: [
-        r'(?:selected\s+)?(?:fuel\s+)?(?:octane|grade|aki)(?:\s+rating)?',
+        r'(?:minimum\s+)?(?:selected\s+)?(?:fuel\s+)?(?:octane|grade|aki)(?:\s+rating)?',
       ],
     }.map(
       (field, rules) => MapEntry(
@@ -90,33 +93,52 @@ PhotoReading? _nearbyValue(
   List<PhotoText> lines,
 ) {
   if (label.height <= 0) return null;
+  final isPumpGrade = label.text.trim().toLowerCase().startsWith(
+    'minimum octane',
+  );
   final candidates = <({double distance, PhotoReading reading})>[];
   for (final line in lines) {
     if (identical(label, line) || line.height <= 0) continue;
-    final number = _number.firstMatch(line.text)?[1];
+    final comma = field == FuelPhotoField.price
+        ? _misreadPrice.firstMatch(line.text)
+        : null;
+    final number =
+        _number.firstMatch(line.text)?[1] ??
+        (comma == null ? null : '${comma[1]}.${comma[2]}');
     if (number == null) continue;
+    // A pump sale display includes cents. A standalone integer can be a
+    // seven-segment reading whose decimal point was lost by OCR.
+    if (field == FuelPhotoField.total &&
+        label.text.toLowerCase().contains('this sale') &&
+        !number.contains('.')) {
+      continue;
+    }
     final value = _value(field, number);
     if (value == null) continue;
 
     final rowGap = line.x - (label.x + label.width);
     final verticalOffset = (line.centerY - label.centerY).abs();
-    final columnGap = line.y - (label.y + label.height);
+    final columnGap =
+        (line.centerY - label.centerY).abs() - (label.height + line.height) / 2;
     final overlap =
         line.x < label.x + label.width && label.x < line.x + line.width;
     final sameRow = rowGap >= -0.01 && verticalOffset <= label.height * 0.6;
-    final directlyAbove =
-        field != FuelPhotoField.octane &&
+    final sameColumn =
+        (field != FuelPhotoField.octane ||
+            (isPumpGrade && line.centerY < label.centerY)) &&
         overlap &&
         columnGap >= -0.01 &&
-        columnGap <= label.height * 1.5;
-    if (!sameRow && !directlyAbove) continue;
-    if (directlyAbove &&
+        columnGap <= (label.height + line.height);
+    if (!sameRow && !sameColumn) continue;
+    if (!sameRow &&
         lines.any(
           (other) =>
               !identical(other, label) &&
               !identical(other, line) &&
-              other.centerY > label.centerY &&
-              other.centerY < line.centerY &&
+              !(isPumpGrade &&
+                  other.text.trim().toUpperCase().endsWith('/2 METHOD')) &&
+              (other.centerY - label.centerY) * (other.centerY - line.centerY) <
+                  0 &&
               other.x < line.x + line.width &&
               line.x < other.x + other.width,
         )) {
@@ -175,7 +197,24 @@ Map<FuelPhotoField, PhotoReading> parseFuelPhoto(List<PhotoText> lines) {
       }
 
       final rules = _rules[field]!;
+      final leading = field == FuelPhotoField.octane
+          ? null
+          : _leadingNumber.firstMatch(text);
       for (var i = 0; i < rules.length; i++) {
+        if (leading != null) {
+          final label = text.substring(leading.end);
+          final labelMatch = rules[i].firstMatch(label);
+          final value = _value(field, leading[1]!);
+          if (labelMatch != null &&
+              _labelEnd.hasMatch(label.substring(labelMatch.end)) &&
+              value != null) {
+            candidates.add((
+              priority: i,
+              reading: (value: value, confidence: line.confidence),
+            ));
+            break;
+          }
+        }
         final match = rules[i].firstMatch(text);
         if (match == null) continue;
         final rest = text.substring(match.end);
@@ -190,7 +229,7 @@ Map<FuelPhotoField, PhotoReading> parseFuelPhoto(List<PhotoText> lines) {
         final value = number == null ? null : _value(field, number);
         final reading = value != null
             ? (value: value, confidence: line.confidence)
-            : RegExp(r'^\s*[:=\$]?\s*$').hasMatch(rest)
+            : _labelEnd.hasMatch(rest)
             ? _nearbyValue(field, line, lines)
             : null;
         if (reading != null) candidates.add((priority: i, reading: reading));

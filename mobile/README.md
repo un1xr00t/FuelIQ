@@ -4,7 +4,7 @@ Dark mode is the default. FuelIQ uses adaptive headers, neutral black panels, an
 
 ## Getting started
 
-Run from `mobile/` with Flutter 3.41.7 / Dart 3.11.5, Xcode, CocoaPods, and a booted iPhone simulator. The deployment target is iOS 15.0, the minimum supported by the local Xcode 27.1 simulator SDK. The development bundle identifier is `com.fueliq.fueliq`. Configure distribution signing before building for release.
+Run from `mobile/` with Flutter 3.41.7 / Dart 3.11.5, Xcode, CocoaPods, and a booted iPhone simulator. The deployment target is iOS 15.5, required by Google ML Kit. The development bundle identifier is `com.fueliq.fueliq`. Configure distribution signing before building for release.
 
 ```sh
 flutter pub get
@@ -14,6 +14,8 @@ flutter run -d <simulator-id>
 
 For a physical iPhone, open `ios/Runner.xcworkspace` in Xcode and select your development team for the Runner target. Stop any active `flutter run` before building from Xcode. Flutter can temporarily redirect Runner's build output during a device run, which can leave Xcode looking for CocoaPods frameworks in a different directory.
 
+If Xcode reports `Framework 'Pods_Runner' not found` after a Flutter device run, regenerate the settings from `mobile/` with `flutter build ios --config-only --no-codesign`, then build again from the workspace.
+
 On Flutter 3.41, FuelIQ pins the CocoaPods implementation of `path_provider_foundation` to avoid the [native framework install failure](https://github.com/flutter/flutter/issues/185667). After updating dependencies, run `flutter pub get` from `mobile/`, then `pod install` from `mobile/ios/`. If Xcode still embeds `objective_c.framework`, use **Product > Clean Build Folder** and run again.
 
 The app runs offline and needs no environment variables, account, API keys, or backend. `path_provider` locates the iOS Application Support directory. A versioned JSON snapshot stores vehicle and fill-up IDs, primary vehicle, and appearance. Writes replace the snapshot atomically. Amounts use integer cents and thousandths for US gallons and price per gallon. A difference over two cents prompts for confirmation and preserves the entered total.
@@ -22,11 +24,19 @@ Garage and Fuel Log use Journal Intelligence V2’s inline photo picker on iOS 1
 
 ## Scan a fill-up
 
+In **Settings → Claude Vision API key**, save your personal Anthropic API key to enable Haiku 5.5 for Fuel Log scans. The key is stored in iOS Keychain. Selected images are resized and re-encoded before they are sent together to Anthropic. The original EXIF capture date is processed on the phone. Each request uses your Anthropic API account. Remove the key in Settings to make local OCR available by explicit choice when starting a scan. The review screen identifies which reader ran. The Mac benchmark reads its key separately from `~/.config/fueliq/anthropic_api_key`.
+
+For local OCR diagnostics, run `python3 tool/pump_scan_capture.py <display-photo> <grade-photo>` from `mobile/` and redirect stdout to a temporary JSON file. Replay it with `FUELIQ_PUMP_SCAN_JSON=<json-file> flutter test test/pump_scan_diagnostic_test.dart`. Set `FUELIQ_PUMP_EXPECTED_JSON` to an object with expected `total` in cents, `gallons` and `price` in thousandths, and `octane` to assert the final fields. The macOS capture runs Apple Vision and the seven-segment reader. Replay also accepts ML Kit lines from an iPhone scan under `alternateText`. Output can contain private OCR text and capture dates. Keep it outside the repository.
+
+For pump displays, frame the printed labels and the numbers together. FuelIQ can match a number above or below its label and recognizes labels such as `$ THIS SALE` and `$/GAL`. If two numbers are similarly close to a label, the field stays blank for manual review.
+
+For an unlabeled, two-row seven-segment display, select the completed display and the price-per-gallon photo together. The on-device reader proposes the top row as the total and the bottom row as gallons when both readings agree to the cent with the scanned price and the match is clear. Review these uncertain readings before saving. Other display layouts may still require manual entry.
+
 Add a vehicle, open Fuel Log, and tap **Scan a fill-up**. Select the grade photo and completed pump display or receipt together, or take a photo with the camera and use **Scan more photos** to add evidence. FuelIQ reads each selected photo and combines the fields into one draft. It flags conflicting fields and reports photos it could not read. Check the editable values, enter any missing fields, and tap **Save fill-up**.
 
-[Apple Vision](https://developer.apple.com/documentation/vision/recognizing-text-in-images) reads text locally. FuelIQ proposes US gallons, total paid, price per gallon, and explicitly identified octane (85–99 AKI). A row matched by position or read with lower OCR confidence is labeled uncertain. Check that a receipt total covers fuel only. If the price is missing, you can calculate it from the entered gallons and total. A row of octane buttons does not identify the selected grade. Scan a receipt with the grade printed or enter it manually.
+[Apple Vision](https://developer.apple.com/documentation/vision/recognizing-text-in-images) and [Google ML Kit Latin Text Recognition](https://developers.google.com/ml-kit/vision/text-recognition/v2/ios) read text on-device. ML Kit can fill missing fields. If the readers propose different values for the same field, FuelIQ leaves that field blank for review. FuelIQ proposes US gallons, total paid, price per gallon, and explicitly identified octane (85–99 AKI). A row matched by position or read with lower OCR confidence is labeled uncertain. Check that a receipt total covers fuel only. If the price is missing, you can calculate it from the entered gallons and total. A row of octane buttons does not identify the selected grade. Scan a receipt with the grade printed or enter it manually.
 
-The scanner accepts JPEG, PNG, and HEIC/HEIF photos up to 30 MB and 60 megapixels. It uses image orientation to read rotated photos. FuelIQ requests no full photo metadata, stores no scan image or raw OCR text with a fill-up, and attempts to delete the app's temporary picker copy when scanning ends. No Gemini key, Apple Intelligence setting, or upload is required. EXIF-based dates, station matching, and OCR of addresses or dates are future work.
+The scanner accepts JPEG, PNG, and HEIC/HEIF photos up to 30 MB and 60 megapixels. It uses image orientation to read rotated photos. FuelIQ requests no full photo metadata, stores no scan image or raw OCR text with a fill-up, and attempts to delete the app's temporary picker copy when scanning ends. No Gemini key, Apple Intelligence setting, or upload is required. For new entries, FuelIQ suggests the original EXIF capture date when the selected photos agree. It uses the embedded offset when available and treats timestamps without one as local time. Check the date before saving. Station matching and OCR of printed addresses or dates are future work.
 
 ## Pennsylvania station pilot
 
@@ -92,7 +102,7 @@ flutter test
 flutter run --no-resident -d <simulator-id>
 ```
 
-With Flutter 3.41.7 and Xcode 27.1, `flutter build ios --simulator` can fail when targeting both simulator architectures. Use the device-specific command above to build and launch on a booted simulator.
+Google ML Kit 8.0.0 excludes arm64 simulator builds. Use a physical iPhone to verify scanning with both readers. Build an unsigned device app with `flutter build ios --debug --no-codesign` or use Xcode with development signing to run on an iPhone.
 
 Add a vehicle with a photo, log a partial fill-up, and compare Home spending with the receipt. Relaunch and verify the vehicle, photo, entry, and appearance persist. Edit the entry and verify the updated total, then delete it and verify the total clears. Try the photo picker with a PNG or JPEG in the simulator and with a real photo on an iPhone. Check VoiceOver and large text on both editors.
 

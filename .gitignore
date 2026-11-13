@@ -3,6 +3,9 @@
 *.apk
 *.xapk
 
+# Local Claude credentials.
+anthropic_api_key
+
 # Brand artwork for the local, private Stations build.
 /mobile/assets/stations/logos/amoco.png
 /mobile/assets/stations/logos/bp-helios.png

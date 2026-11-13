@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 
 import '../../data/fuel_records.dart';
@@ -6,6 +8,7 @@ import '../../design_system/fuel_page.dart';
 import '../../design_system/fuel_theme.dart';
 import '../../design_system/photo_picker.dart';
 import '../../design_system/record_controls.dart';
+import 'claude_vision.dart';
 import 'fuel_photo_parser.dart';
 import 'fuel_photo_scanner.dart';
 
@@ -215,6 +218,7 @@ class _FillUpEditorState extends State<_FillUpEditor> {
   );
   late int _vehicleId = widget.entry?.vehicleId ?? widget.store.data.primaryId!;
   late DateTime _date = widget.entry?.date.toLocal() ?? DateTime.now();
+  bool _dateEdited = false;
   late bool _full = widget.entry?.full ?? true;
   bool _showDate = false;
   bool _busy = false;
@@ -287,13 +291,67 @@ class _FillUpEditorState extends State<_FillUpEditor> {
     FocusScope.of(context).unfocus();
     setState(() => _pickingPhoto = true);
     try {
+      final useClaude = await hasClaudeVisionKey();
+      if (!mounted) return;
+      if (Platform.isIOS && !useClaude) {
+        final useLocal = await showCupertinoDialog<bool>(
+          context: context,
+          builder: (dialog) => CupertinoAlertDialog(
+            title: const Text('Claude Vision needs a key'),
+            content: const Text(
+              'Save your Anthropic API key under Settings → Claude Vision API key on this iPhone. The Mac benchmark key is stored separately.',
+            ),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(dialog, false),
+                child: const Text('Cancel'),
+              ),
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(dialog, true),
+                child: const Text('Use local OCR'),
+              ),
+            ],
+          ),
+        );
+        if (useLocal != true || !mounted) return;
+      }
       final photos = await showFuelPhotoPicker(context);
       if (photos.isEmpty) return;
       final readings = <FuelPhotoField, PhotoReading>{};
       final conflicts = <FuelPhotoField>{};
+      final displays = <PumpDisplay>[];
+      final captures = <DateTime>[];
+      final unmatchedPhotos = <List<PumpDisplay>>[];
       var failed = 0;
-      var empty = 0;
-      for (final (index, photo) in photos.indexed) {
+      if (useClaude) {
+        try {
+          if (!mounted) return;
+          setState(() {
+            _scanning = true;
+            _photoNumber = photos.length;
+            _photoCount = photos.length;
+          });
+          final result = await scanWithClaude(photos.nonNulls.toList());
+          readings.addAll(result.readings);
+          captures.addAll(result.captures);
+          failed =
+              result.failed + photos.where((photo) => photo == null).length;
+        } catch (_) {
+          if (mounted) {
+            setState(
+              () => _scanStatus =
+                  'Claude Vision could not complete the scan. Check your connection and API key in Settings, or enter values manually.',
+            );
+          }
+          return;
+        } finally {
+          for (final photo in photos.nonNulls) {
+            await discardPickedPhoto(photo);
+          }
+        }
+      }
+      for (final (index, photo)
+          in (useClaude ? photos.take(0) : photos).indexed) {
         if (photo == null) {
           failed++;
           continue;
@@ -306,8 +364,12 @@ class _FillUpEditorState extends State<_FillUpEditor> {
             _photoCount = photos.length;
           });
           final result = await scanFuelPhoto(photo);
-          if (result.isEmpty) empty++;
-          for (final entry in result.entries) {
+          if (result.capturedAt case final capture?) {
+            if (!capture.isAfter(DateTime.now())) captures.add(capture);
+          }
+          displays.addAll(result.displays);
+          if (result.readings.isEmpty) unmatchedPhotos.add(result.displays);
+          for (final entry in result.readings.entries) {
             if (conflicts.contains(entry.key)) continue;
             final previous = readings[entry.key];
             if (previous != null && previous.value != entry.value.value) {
@@ -325,11 +387,64 @@ class _FillUpEditorState extends State<_FillUpEditor> {
         }
       }
       if (!mounted) return;
+      final enteredPrice = _enteredValue(FuelPhotoField.price);
+      final scannedPrice = readings[FuelPhotoField.price]?.value;
+      final price = enteredPrice ?? scannedPrice;
+      if (price != null &&
+          !conflicts.contains(FuelPhotoField.price) &&
+          !conflicts.contains(FuelPhotoField.total) &&
+          !conflicts.contains(FuelPhotoField.gallons) &&
+          (scannedPrice == null || scannedPrice == price)) {
+        final match = matchPumpDisplay(
+          displays,
+          price: price,
+          knownTotal:
+              _enteredValue(FuelPhotoField.total) ??
+              readings[FuelPhotoField.total]?.value,
+          knownGallons:
+              _enteredValue(FuelPhotoField.gallons) ??
+              readings[FuelPhotoField.gallons]?.value,
+        );
+        if (match != null) {
+          readings[FuelPhotoField.total] ??= (
+            value: match.total,
+            confidence: 0.7,
+          );
+          readings[FuelPhotoField.gallons] ??= (
+            value: match.gallons,
+            confidence: 0.7,
+          );
+          unmatchedPhotos.removeWhere(
+            (photo) => photo.any(
+              (display) =>
+                  display.totals.any((total) => total.value == match.total) &&
+                  display.gallons.any(
+                    (gallons) => gallons.value == match.gallons,
+                  ),
+            ),
+          );
+        }
+      }
+      final empty = unmatchedPhotos.length;
+      captures.sort();
+      final dateConflict =
+          captures.isNotEmpty && !_sameDay(captures.first, captures.last);
+      final useCapture =
+          captures.isNotEmpty &&
+          !dateConflict &&
+          !_dateEdited &&
+          widget.entry == null;
       setState(() {
+        if (useCapture) _date = captures.first;
         for (final entry in readings.entries) {
           final controller = _controller(entry.key);
           final text = _readingText(entry.key, entry.value.value);
-          if (controller.text.trim().isEmpty) {
+          final previous = _readings[entry.key];
+          final replaceScan =
+              useClaude &&
+              previous != null &&
+              controller.text == _readingText(entry.key, previous.value);
+          if (controller.text.trim().isEmpty || replaceScan) {
             controller.text = text;
             _readings[entry.key] = entry.value;
           } else if (_enteredValue(entry.key) != entry.value.value) {
@@ -345,10 +460,23 @@ class _FillUpEditorState extends State<_FillUpEditor> {
           },
         );
         _scanStatus = [
+          if (useClaude && readings.isNotEmpty) 'Scanned with Claude Vision.',
+          if (!useClaude) 'Scanned with local OCR.',
           if (failed > 0)
             'Could not scan $failed of ${photos.length} selected photos.',
-          if (empty > 0)
-            'No fuel details found in $empty of ${photos.length} selected photos.',
+          if (dateConflict)
+            'Photos have different capture dates. Check the fill-up date.',
+          if (useCapture) 'Date suggested from photo capture time.',
+          if (useClaude && readings.isEmpty)
+            'Claude Vision could not read the fill-up fields.',
+          if (displays.isNotEmpty &&
+              price == null &&
+              !conflicts.contains(FuelPhotoField.price))
+            'Scan both pump photos together, or enter the price per gallon and rescan the display.'
+          else if (empty == photos.length)
+            'No fuel details could be matched. Try a close-up of the completed pump display or the fuel lines on your receipt.'
+          else if (empty > 0)
+            'No fuel details could be matched in $empty of ${photos.length} selected photos.',
           if (conflicts.isNotEmpty)
             'Conflicting readings for ${conflictLabels.join(', ')}. Check the photos and enter the correct values.',
           'Review the fields and fill in any blanks before saving.',
@@ -617,7 +745,10 @@ class _FillUpEditorState extends State<_FillUpEditor> {
               mode: CupertinoDatePickerMode.date,
               initialDateTime: _date,
               maximumDate: DateTime.now(),
-              onDateTimeChanged: (date) => setState(() => _date = date),
+              onDateTimeChanged: (date) => setState(() {
+                _date = date;
+                _dateEdited = true;
+              }),
             ),
           ),
         const SizedBox(height: FuelTheme.gap),

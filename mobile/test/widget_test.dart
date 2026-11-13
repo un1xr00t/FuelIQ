@@ -305,17 +305,20 @@ void main() {
           final path when path == conflict.path => ['PPG 5.999'],
           _ => throw StateError('Unexpected photo'),
         };
-        return [
-          for (final text in lines)
-            {
-              'text': text,
-              'confidence': 0.98,
-              'x': 0.0,
-              'y': 0.0,
-              'width': 0.0,
-              'height': 0.0,
-            },
-        ];
+        return {
+          'text': [
+            for (final text in lines)
+              {
+                'text': text,
+                'confidence': 0.98,
+                'x': 0.0,
+                'y': 0.0,
+                'width': 0.0,
+                'height': 0.0,
+              },
+          ],
+          'display': [],
+        };
       });
       addTearDown(() {
         messenger.setMockMethodCallHandler(scanner, null);
