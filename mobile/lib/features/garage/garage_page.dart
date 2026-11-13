@@ -40,24 +40,11 @@ class GaragePage extends StatelessWidget {
               ),
         header: AspectRatio(
           aspectRatio: 1.48,
-          child: ClipRect(
-            child: CustomPaint(
-              painter: const _GarageRibbons(),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
-                child: photo != null
-                    ? VehiclePhoto(
-                        photo,
-                        size: double.infinity,
-                        fit: BoxFit.contain,
-                      )
-                    : const Icon(
-                        CupertinoIcons.car_detailed,
-                        size: 92,
-                        color: Color(0xFF303478),
-                      ),
-              ),
-            ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: photo != null
+                ? VehiclePhoto(photo, size: double.infinity, fit: BoxFit.cover)
+                : const Icon(CupertinoIcons.car_detailed, size: 92),
           ),
         ),
         children: [
@@ -98,33 +85,6 @@ class GaragePage extends StatelessWidget {
       );
     },
   );
-}
-
-class _GarageRibbons extends CustomPainter {
-  const _GarageRibbons();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    canvas.scale(size.width, size.height);
-    final ribbon = Path()
-      ..moveTo(-.13, .04)
-      ..cubicTo(.26, .30, .75, .25, 1.12, -.08)
-      ..lineTo(1.12, .27)
-      ..cubicTo(.70, .61, .16, .48, -.13, .32)
-      ..close();
-    final paint = Paint()
-      ..shader = const LinearGradient(
-        colors: [Color(0xFF434AAF), Color(0xFFB7BAE5), Color(0xFF4A50B3)],
-      ).createShader(const Rect.fromLTWH(0, 0, 1, 1));
-    canvas.drawPath(ribbon, paint);
-    canvas.translate(0, .57);
-    canvas.drawPath(ribbon, paint);
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _GarageRibbons oldDelegate) => false;
 }
 
 class _VehicleEditor extends StatefulWidget {

@@ -1,6 +1,6 @@
 # FuelIQ for iOS
 
-Dark mode is the default. FuelIQ uses silver headers, graphite panels, and green primary actions. Settings saves the selected appearance. Garage supports multiple vehicles, one primary vehicle, and optional photos. Fuel Log supports manual entry, editing, and deletion for full and partial tanks. Home shows all-time spending from saved fill-ups. Stations shows an unavailable state pending an authorized source.
+Dark mode is the default. FuelIQ uses adaptive headers, neutral black panels, and blue primary actions. Settings saves the selected appearance. Garage supports multiple vehicles, one primary vehicle, and optional photos. Fuel Log supports manual entry, editing, and deletion for full and partial tanks. Home shows all-time spending from saved fill-ups. Stations shows an unavailable state pending an authorized source.
 
 ## Getting started
 

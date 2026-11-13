@@ -3,11 +3,11 @@ import 'package:flutter/cupertino.dart';
 abstract final class FuelTheme {
   static const canvas = CupertinoDynamicColor.withBrightness(
     color: Color(0xFFE9E9EB),
-    darkColor: Color(0xFF101112),
+    darkColor: Color(0xFF000000),
   );
   static const surface = CupertinoDynamicColor.withBrightness(
     color: Color(0xFFFFFFFF),
-    darkColor: Color(0xFF131415),
+    darkColor: Color(0xFF101010),
   );
   static const ink = CupertinoDynamicColor.withBrightness(
     color: Color(0xFF18191B),
@@ -22,8 +22,8 @@ abstract final class FuelTheme {
     darkColor: Color(0xFF323437),
   );
   static const accent = CupertinoDynamicColor.withBrightness(
-    color: Color(0xFF166B33),
-    darkColor: Color(0xFF42D568),
+    color: Color(0xFF175BCC),
+    darkColor: Color(0xFF599CFF),
   );
   static const accentSurface = CupertinoDynamicColor.withBrightness(
     color: Color(0xFFF1F1F3),
@@ -32,14 +32,20 @@ abstract final class FuelTheme {
 
   static const onAccent = CupertinoDynamicColor.withBrightness(
     color: Color(0xFFFFFFFF),
-    darkColor: Color(0xFF102516),
+    darkColor: Color(0xFFFFFFFF),
   );
 
   static const pearl = Color(0xFFF5F5F6);
-  static const pearlInk = Color(0xFF17181A);
-  static const pearlMuted = Color(0xFF505257);
-  static const actionStart = Color(0xFF228940);
-  static const actionEnd = Color(0xFF1A7936);
+  static const pearlInk = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFF17181A),
+    darkColor: Color(0xFFF4F4F5),
+  );
+  static const pearlMuted = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFF505257),
+    darkColor: Color(0xFFACADB0),
+  );
+  static const actionStart = Color(0xFF2466DC);
+  static const actionEnd = Color(0xFF164BB4);
 
   static const compact = 8.0;
   static const gap = 12.0;

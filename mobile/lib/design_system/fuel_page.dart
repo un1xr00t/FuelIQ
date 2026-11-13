@@ -23,17 +23,15 @@ class FuelPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final canPop = ModalRoute.of(context)?.canPop ?? false;
     final ink = silver
-        ? FuelTheme.pearlInk
+        ? FuelTheme.resolve(context, FuelTheme.pearlInk)
         : FuelTheme.resolve(context, FuelTheme.ink);
     final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
-    final titleStyle = title == 'FuelIQ'
+    final titleStyle = title == 'FuelIQ' || title == 'My Garage'
         ? FuelTheme.wordmark
         : FuelTheme.heading;
     final headerRadius = BorderRadius.vertical(bottom: Radius.circular(42));
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: !silver && dark
-          ? SystemUiOverlayStyle.light
-          : SystemUiOverlayStyle.dark,
+      value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: CupertinoPageScaffold(
         child: CustomScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -42,7 +40,7 @@ class FuelPage extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   borderRadius: silver ? headerRadius : null,
-                  gradient: silver
+                  gradient: silver && !dark
                       ? const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -214,14 +212,14 @@ class FuelSurface extends StatelessWidget {
                     center: const Alignment(0, 1.15),
                     radius: 1.2,
                     colors: [
-                      dark ? const Color(0xFF143820) : const Color(0xFFDAEEE0),
+                      dark ? const Color(0xFF10213D) : const Color(0xFFDFE9FC),
                       surface,
                     ],
                   )
                 : LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [dark ? const Color(0xFF171819) : surface, surface],
+                    colors: [dark ? const Color(0xFF141414) : surface, surface],
                   ),
           ),
           child: child,
@@ -308,17 +306,17 @@ class FuelAction extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF53B96A),
+                Color(0xFF659FFF),
                 FuelTheme.actionStart,
                 FuelTheme.actionEnd,
-                Color(0xFF379F53),
+                Color(0xFF3F78DC),
               ],
               stops: [0, .18, .83, 1],
             ),
       border: Border.all(
         color: onPressed == null
             ? FuelTheme.resolve(context, FuelTheme.border)
-            : const Color(0xFF3E9C59),
+            : const Color(0xFF578DE9),
       ),
       borderRadius: BorderRadius.circular(100),
     ),

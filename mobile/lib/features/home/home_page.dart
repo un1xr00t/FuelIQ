@@ -41,9 +41,9 @@ class HomePage extends StatelessWidget {
                 children: [
                   ClipOval(
                     child: photo != null
-                        ? VehiclePhoto(photo, size: 64)
+                        ? VehiclePhoto(photo, size: 112)
                         : const SizedBox.square(
-                            dimension: 64,
+                            dimension: 112,
                             child: Icon(CupertinoIcons.car_detailed, size: 30),
                           ),
                   ),
@@ -116,24 +116,29 @@ class HomePage extends StatelessWidget {
           },
         ),
         children: [
+          FuelPanel(
+            children: [
+              const Text('Fuel activity', style: FuelTheme.heading),
+              const SizedBox(height: 16),
+              Text(
+                '${fixed(data.fillUps.fold<int>(0, (sum, entry) => sum + entry.volume), 3)} gallons logged',
+                style: FuelTheme.rowTitle,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                data.fillUps.isEmpty
+                    ? 'Your latest fill-up will appear here.'
+                    : 'Latest fill-up · ${dollars(data.fillUps.first.total)}',
+                style: FuelTheme.body,
+              ),
+            ],
+          ),
+          const SizedBox(height: FuelTheme.gap),
+
           FuelSurface(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                RecordRow(
-                  title: 'My Garage',
-                  detail: primary?.name ?? 'Add your first vehicle',
-                  icon: CupertinoIcons.car_detailed,
-                  onPressed: openGarage,
-                  framed: false,
-                ),
-                RecordRow(
-                  title: 'Open Fuel Log',
-                  detail: 'Scan a receipt or view activity',
-                  icon: CupertinoIcons.clock,
-                  onPressed: openFuelLog,
-                  framed: false,
-                ),
                 RecordRow(
                   title: 'Station research',
                   detail: 'Station and fuel information',

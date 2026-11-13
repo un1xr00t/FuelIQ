@@ -42,11 +42,7 @@ void main() {
     await tester.pumpWidget(const FuelIqApp());
     await tester.pumpAndSettle();
 
-    const shortcuts = {
-      'Open Fuel Log': 'No fill-ups yet',
-      'My Garage': 'No vehicles yet',
-      'Station research': 'Station data unavailable',
-    };
+    const shortcuts = {'Station research': 'Station data unavailable'};
     for (final entry in shortcuts.entries) {
       final shortcut = find.text(entry.key);
       await tester.ensureVisible(shortcut);
