@@ -7,7 +7,15 @@ void main() {
   test('bundled catalog searches real records without network', () async {
     final catalog = await StationCatalog.load();
     expect(catalog.stations.length, greaterThan(3000));
-    expect(catalog.search('Sheetz'), isNotEmpty);
+    expect(catalog.search('Sheetz'), isEmpty);
+    expect(catalog.search('Wawa'), isEmpty);
+    expect(catalog.search('Shell'), isNotEmpty);
+    expect(
+      catalog
+          .search("Rutter's")
+          .any((result) => result.station.brand == "Rutter's"),
+      isTrue,
+    );
     final nearby = catalog.search(
       '',
       location: (latitude: 40.4406, longitude: -79.9959, accuracy: 100),
@@ -15,6 +23,7 @@ void main() {
     expect(nearby.length, greaterThan(30));
     expect(nearby.any((result) => result.miles! > 25), isTrue);
     expect(nearby.every((result) => result.station.isNamed), isTrue);
+    expect(nearby.every((result) => result.station.brand.isNotEmpty), isTrue);
     final distances = nearby.map((result) => result.miles!).toList();
     expect(distances, orderedEquals([...distances]..sort()));
     expect(

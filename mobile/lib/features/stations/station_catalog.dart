@@ -48,15 +48,35 @@ class Station {
 }
 
 class StationCatalog {
-  const StationCatalog(this.asOf, this.stations);
+  const StationCatalog._(this.asOf, this.stations, this._approvedBrandKeys);
 
   final DateTime asOf;
   final List<Station> stations;
+  final Set<String> _approvedBrandKeys;
 
-  static Future<StationCatalog> load() async =>
-      parse(await rootBundle.loadString('assets/stations/pennsylvania.json'));
+  static Future<StationCatalog> load() async {
+    final assets = await Future.wait([
+      rootBundle.loadString('assets/stations/pennsylvania.json'),
+      rootBundle.loadString('assets/stations/toptier_gasoline_brands.json'),
+    ]);
+    return parse(assets[0], assets[1]);
+  }
 
-  static StationCatalog parse(String json) {
+  static String _brandKey(String value) =>
+      value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
+
+  static StationCatalog parse(String json, String brandsJson) {
+    final brandData = jsonDecode(brandsJson) as Map<String, dynamic>;
+    final brands = brandData['brands'] as List;
+    final approvedBrandKeys = {
+      for (final brand in brands.cast<Map<String, dynamic>>())
+        for (final key in (brand['match_keys'] as List).cast<String>())
+          _brandKey(key),
+    };
+    if (approvedBrandKeys.isEmpty || approvedBrandKeys.contains('')) {
+      throw const FormatException('Invalid TOP TIER gasoline brand list.');
+    }
+
     final data = jsonDecode(json) as Map<String, dynamic>;
     final rows = data['stations'] as List;
     if (data['version'] != 1 || rows.isEmpty) {
@@ -89,9 +109,10 @@ class StationCatalog {
         ),
       );
     }
-    return StationCatalog(
+    return StationCatalog._(
       DateTime.parse(data['asOf'] as String),
       List.unmodifiable(stations),
+      Set.unmodifiable(approvedBrandKeys),
     );
   }
 
@@ -102,7 +123,10 @@ class StationCatalog {
     final terms = query.toLowerCase().trim().split(RegExp(r'\s+'));
     final results = <({Station station, double? miles})>[];
     for (final station in stations) {
-      if (!station.isNamed) continue;
+      if (!station.isNamed ||
+          !_approvedBrandKeys.contains(_brandKey(station.brand))) {
+        continue;
+      }
       final text = '${station.name} ${station.brand} ${station.address}'
           .toLowerCase();
       if (!terms.every(text.contains)) continue;

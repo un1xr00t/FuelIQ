@@ -54,4 +54,5 @@ dev_dependencies:
 flutter:
   assets:
     - assets/stations/pennsylvania.json
+    - assets/stations/toptier_gasoline_brands.json
     - assets/stations/logos/

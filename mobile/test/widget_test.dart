@@ -126,8 +126,8 @@ void main() {
           for (var i = 1; i <= 50; i++)
             {
               'id': 'node/$i',
-              'name': 'Sheetz $i',
-              'brand': '',
+              'name': 'Shell $i',
+              'brand': 'Shell',
               'address': '$i Test Street',
               'latitude': 40.0,
               'longitude': -80.0,
@@ -142,12 +142,20 @@ void main() {
           message.lengthInBytes,
         ),
       );
-      return key == 'assets/stations/pennsylvania.json'
-          ? ByteData.sublistView(Uint8List.fromList(fixture))
-          : null;
+      return switch (key) {
+        'assets/stations/pennsylvania.json' => ByteData.sublistView(
+          Uint8List.fromList(fixture),
+        ),
+        'assets/stations/toptier_gasoline_brands.json' => ByteData.sublistView(
+          Uint8List.fromList(
+            utf8.encode('{"brands":[{"match_keys":["shell"]}]}'),
+          ),
+        ),
+        _ => null,
+      };
     });
     addTearDown(() => messenger.setMockMessageHandler('flutter/assets', null));
-    await tester.enterText(find.byType(CupertinoSearchTextField), 'Sheetz');
+    await tester.enterText(find.byType(CupertinoSearchTextField), 'Shell');
     await tester.pumpAndSettle();
 
     int count() => tester

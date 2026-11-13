@@ -1,0 +1,635 @@
+{
+  "dataset": "TOP TIER Approved Gasoline Brands",
+  "source": "https://www.toptiergas.com/gasoline-brands/",
+  "fetched": "2026-11-13",
+  "scope": "gasoline; all listed countries (US, Canada, Mexico, Central/South America)",
+  "note": "Certification is brand-level. A station is TOP TIER if its operating brand is in this list. Refresh periodically; brands join over time. TOP TIER+ is a separate higher tier rolling out through Jan 2027 and is not distinguished here.",
+  "count": 98,
+  "brands": [
+    {
+      "name": "44 VARIETY",
+      "match_keys": [
+        "44 variety"
+      ]
+    },
+    {
+      "name": "76",
+      "match_keys": [
+        "76",
+        "76 gas",
+        "phillips76",
+        "unocal76"
+      ]
+    },
+    {
+      "name": "AGUA CALIENTE FUEL",
+      "match_keys": [
+        "agua caliente fuel"
+      ]
+    },
+    {
+      "name": "Aloha",
+      "match_keys": [
+        "aloha",
+        "aloha island mart",
+        "aloha petroleum"
+      ]
+    },
+    {
+      "name": "AMOCO",
+      "match_keys": [
+        "amoco"
+      ]
+    },
+    {
+      "name": "Angel of the Winds Casino and Resort",
+      "match_keys": [
+        "angel of the winds casino and resort"
+      ]
+    },
+    {
+      "name": "Aramco",
+      "match_keys": [
+        "aramco"
+      ]
+    },
+    {
+      "name": "ARCO",
+      "match_keys": [
+        "ampm arco",
+        "arco",
+        "arco ampm"
+      ]
+    },
+    {
+      "name": "Beacon",
+      "match_keys": [
+        "beacon"
+      ]
+    },
+    {
+      "name": "BEAR CREEK",
+      "match_keys": [
+        "bear creek"
+      ]
+    },
+    {
+      "name": "Belmont Car Wash",
+      "match_keys": [
+        "belmont car wash"
+      ]
+    },
+    {
+      "name": "BKEJWANONG ENERGY & FUEL",
+      "match_keys": [
+        "bkejwanong energy fuel"
+      ]
+    },
+    {
+      "name": "BP",
+      "match_keys": [
+        "bp",
+        "bp amoco",
+        "bp connect"
+      ]
+    },
+    {
+      "name": "Cenex",
+      "match_keys": [
+        "cenex",
+        "cenex zip trip"
+      ]
+    },
+    {
+      "name": "Chevron",
+      "match_keys": [
+        "chevron",
+        "chevron extramile",
+        "chevron techron"
+      ]
+    },
+    {
+      "name": "CHUKCHANSI CROSSING FUEL STATION & TRAVEL CENTER",
+      "match_keys": [
+        "chukchansi crossing fuel station travel center"
+      ]
+    },
+    {
+      "name": "CHUMASH GAS STATION",
+      "match_keys": [
+        "chumash gas station"
+      ]
+    },
+    {
+      "name": "CITGO",
+      "match_keys": [
+        "citgo"
+      ]
+    },
+    {
+      "name": "Co-op Fuel",
+      "match_keys": [
+        "co op fuel"
+      ]
+    },
+    {
+      "name": "Conoco",
+      "match_keys": [
+        "conoco"
+      ]
+    },
+    {
+      "name": "COPEC S.A.",
+      "match_keys": [
+        "copec s a"
+      ]
+    },
+    {
+      "name": "Costco / Kirkland Signature",
+      "match_keys": [
+        "costco",
+        "costco gas",
+        "costco gasoline",
+        "costco kirkland signature",
+        "costco wholesale",
+        "kirkland",
+        "kirkland signature"
+      ]
+    },
+    {
+      "name": "CountryMark",
+      "match_keys": [
+        "country mark",
+        "countrymark"
+      ]
+    },
+    {
+      "name": "Coyote Valley",
+      "match_keys": [
+        "coyote valley"
+      ]
+    },
+    {
+      "name": "DASH IN",
+      "match_keys": [
+        "dash in"
+      ]
+    },
+    {
+      "name": "Diamond Shamrock",
+      "match_keys": [
+        "diamond shamrock"
+      ]
+    },
+    {
+      "name": "DSV",
+      "match_keys": [
+        "dsv"
+      ]
+    },
+    {
+      "name": "Eagle Feather Trading Post",
+      "match_keys": [
+        "eagle feather trading post"
+      ]
+    },
+    {
+      "name": "EcoMaxx",
+      "match_keys": [
+        "ecomaxx"
+      ]
+    },
+    {
+      "name": "ENERGY",
+      "match_keys": [
+        "energy"
+      ]
+    },
+    {
+      "name": "Express Mart",
+      "match_keys": [
+        "express mart"
+      ]
+    },
+    {
+      "name": "Exxon",
+      "match_keys": [
+        "esso",
+        "exxon",
+        "exxonmobil"
+      ]
+    },
+    {
+      "name": "FAST FUEL",
+      "match_keys": [
+        "fast fuel"
+      ]
+    },
+    {
+      "name": "Feather Falls Mini Mart",
+      "match_keys": [
+        "feather falls mini mart"
+      ]
+    },
+    {
+      "name": "FORT INDEPENDENCE TRAVEL PLAZA",
+      "match_keys": [
+        "fort independence travel plaza"
+      ]
+    },
+    {
+      "name": "FUEL DEPOT",
+      "match_keys": [
+        "fuel depot"
+      ]
+    },
+    {
+      "name": "FUEL UP!",
+      "match_keys": [
+        "fuel up"
+      ]
+    },
+    {
+      "name": "G Premium and G Super",
+      "match_keys": [
+        "g premium and g super"
+      ]
+    },
+    {
+      "name": "Go Happy",
+      "match_keys": [
+        "go happy"
+      ]
+    },
+    {
+      "name": "Gold Medal Gasoline",
+      "match_keys": [
+        "gold medal gasoline"
+      ]
+    },
+    {
+      "name": "GULF",
+      "match_keys": [
+        "gulf"
+      ]
+    },
+    {
+      "name": "Harmons Fuel Stop",
+      "match_keys": [
+        "harmons fuel stop"
+      ]
+    },
+    {
+      "name": "Hele",
+      "match_keys": [
+        "hele"
+      ]
+    },
+    {
+      "name": "HFN",
+      "match_keys": [
+        "hfn"
+      ]
+    },
+    {
+      "name": "Holiday",
+      "match_keys": [
+        "holiday",
+        "holiday station",
+        "holiday stationstores"
+      ]
+    },
+    {
+      "name": "HORIZON FUEL CENTER",
+      "match_keys": [
+        "horizon fuel center"
+      ]
+    },
+    {
+      "name": "J&E Wendy",
+      "match_keys": [
+        "j e wendy"
+      ]
+    },
+    {
+      "name": "MAIDU MART",
+      "match_keys": [
+        "maidu mart"
+      ]
+    },
+    {
+      "name": "Marathon",
+      "match_keys": [
+        "marathon"
+      ]
+    },
+    {
+      "name": "Mega Saver",
+      "match_keys": [
+        "mega saver"
+      ]
+    },
+    {
+      "name": "Meijer Express",
+      "match_keys": [
+        "meijer",
+        "meijer express",
+        "meijer gas"
+      ]
+    },
+    {
+      "name": "Members Carwash and Fuel",
+      "match_keys": [
+        "members carwash and fuel"
+      ]
+    },
+    {
+      "name": "Mobil",
+      "match_keys": [
+        "exxonmobil",
+        "mobil"
+      ]
+    },
+    {
+      "name": "MORONGO TRAVEL CENTER",
+      "match_keys": [
+        "morongo travel center"
+      ]
+    },
+    {
+      "name": "MOUNTAIN SKY TRAVEL CENTER",
+      "match_keys": [
+        "mountain sky travel center"
+      ]
+    },
+    {
+      "name": "Nooksack Market",
+      "match_keys": [
+        "nooksack market"
+      ]
+    },
+    {
+      "name": "Ohana Fuels",
+      "match_keys": [
+        "ohana fuel",
+        "ohana fuels"
+      ]
+    },
+    {
+      "name": "Pahvant Travel Plaza",
+      "match_keys": [
+        "pahvant travel plaza"
+      ]
+    },
+    {
+      "name": "PAIUTE PALACE GAS STATION",
+      "match_keys": [
+        "paiute palace gas station"
+      ]
+    },
+    {
+      "name": "PALA CASINO GAS STATION",
+      "match_keys": [
+        "pala casino gas station"
+      ]
+    },
+    {
+      "name": "Pechanga Gas Station",
+      "match_keys": [
+        "pechanga gas station"
+      ]
+    },
+    {
+      "name": "Penner Oil",
+      "match_keys": [
+        "penner oil"
+      ]
+    },
+    {
+      "name": "Phillips 66",
+      "match_keys": [
+        "p66",
+        "phillips",
+        "phillips 66",
+        "phillips66"
+      ]
+    },
+    {
+      "name": "Primax",
+      "match_keys": [
+        "primax"
+      ]
+    },
+    {
+      "name": "Puma Energy",
+      "match_keys": [
+        "puma energy"
+      ]
+    },
+    {
+      "name": "QuikTrip",
+      "match_keys": [
+        "qt",
+        "quiktrip"
+      ]
+    },
+    {
+      "name": "Reeders",
+      "match_keys": [
+        "reeders"
+      ]
+    },
+    {
+      "name": "Rutters",
+      "match_keys": [
+        "rutter s",
+        "rutters",
+        "rutters farm stores"
+      ]
+    },
+    {
+      "name": "SANTA ROSA PIT STOP",
+      "match_keys": [
+        "santa rosa pit stop"
+      ]
+    },
+    {
+      "name": "SANTA YSABEL ROADSIDE",
+      "match_keys": [
+        "santa ysabel roadside"
+      ]
+    },
+    {
+      "name": "Shamrock",
+      "match_keys": [
+        "shamrock"
+      ]
+    },
+    {
+      "name": "Shelees Travel Center",
+      "match_keys": [
+        "shelees travel center"
+      ]
+    },
+    {
+      "name": "Shell",
+      "match_keys": [
+        "shell",
+        "shell oil"
+      ]
+    },
+    {
+      "name": "Shivwits Fuel Station",
+      "match_keys": [
+        "shivwits fuel station"
+      ]
+    },
+    {
+      "name": "Simonson Station Stores",
+      "match_keys": [
+        "simonson station stores"
+      ]
+    },
+    {
+      "name": "Sinclair",
+      "match_keys": [
+        "dinocare",
+        "sinclair",
+        "sinclair oil"
+      ]
+    },
+    {
+      "name": "Sunoco",
+      "match_keys": [
+        "sunoco",
+        "sunoco aplus"
+      ]
+    },
+    {
+      "name": "SYCUAN MARKET",
+      "match_keys": [
+        "sycuan market"
+      ]
+    },
+    {
+      "name": "Terpel",
+      "match_keys": [
+        "terpel"
+      ]
+    },
+    {
+      "name": "Texaco",
+      "match_keys": [
+        "texaco"
+      ]
+    },
+    {
+      "name": "TORRES MARTINEZ TRAVEL CENTER",
+      "match_keys": [
+        "torres martinez travel center"
+      ]
+    },
+    {
+      "name": "TotalGas",
+      "match_keys": [
+        "totalgas"
+      ]
+    },
+    {
+      "name": "Tulalip Market",
+      "match_keys": [
+        "tulalip market"
+      ]
+    },
+    {
+      "name": "Ultra Top Fuel",
+      "match_keys": [
+        "ultra top fuel"
+      ]
+    },
+    {
+      "name": "Ultramar",
+      "match_keys": [
+        "ultramar"
+      ]
+    },
+    {
+      "name": "Uncle Buddys Pumps",
+      "match_keys": [
+        "uncle buddys pumps"
+      ]
+    },
+    {
+      "name": "Uno",
+      "match_keys": [
+        "uno"
+      ]
+    },
+    {
+      "name": "Valero",
+      "match_keys": [
+        "valero"
+      ]
+    },
+    {
+      "name": "Viejas Pit Stop",
+      "match_keys": [
+        "viejas pit stop"
+      ]
+    },
+    {
+      "name": "Waterway Fuels",
+      "match_keys": [
+        "waterway fuels"
+      ]
+    },
+    {
+      "name": "WIN WIN",
+      "match_keys": [
+        "win win"
+      ]
+    },
+    {
+      "name": "Wintun Mini Mart",
+      "match_keys": [
+        "wintun mini mart"
+      ]
+    },
+    {
+      "name": "WOW",
+      "match_keys": [
+        "wow"
+      ]
+    },
+    {
+      "name": "Yokut Gas Station",
+      "match_keys": [
+        "yokut gas station"
+      ]
+    },
+    {
+      "name": "YPF",
+      "match_keys": [
+        "ypf"
+      ]
+    },
+    {
+      "name": "YUHUBI NOBI GAS STATION & MARKET",
+      "match_keys": [
+        "yuhubi nobi gas station market"
+      ]
+    },
+    {
+      "name": "Petrobras",
+      "match_keys": [
+        "petrobras"
+      ]
+    },
+    {
+      "name": "River Rock Tobacco & Fuel",
+      "match_keys": [
+        "river rock tobacco fuel"
+      ]
+    }
+  ]
+}

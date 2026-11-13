@@ -101,6 +101,7 @@ Do not install expensive third-party services or add paid API dependencies witho
 - Maintain FuelIQ's own station database and documented search and detail APIs. Use PostGIS for proximity. Support text, brand, and fuel filters where the licensed data allows.
 - Use station cards, location search, and optional external directions.
 - Source station locations and certification separately. Verify terms, coverage, and update methods before ingestion. A brand match alone cannot verify a station or fuel grade.
+- The offline Pennsylvania pilot filters text and nearby results by exact, normalized matches between the station's OpenStreetMap brand and the aliases in `mobile/assets/stations/toptier_gasoline_brands.json`. The supplied snapshot is dated November 13, 2026 and combines gasoline brands across countries. It has no country-specific eligibility or station-level approval records. To refresh the filter, replace the bundled snapshot and run the station catalog and widget tests.
 - Use brand assets and station photos only when the license permits the intended use. Require official evidence with explicit scope before publishing station-level chemistry, contamination, deliveries, or inspections.
 
 ## Source strategy
