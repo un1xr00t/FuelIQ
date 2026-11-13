@@ -1,6 +1,7 @@
 import CoreLocation
 import Flutter
 import ImageIO
+import MapKit
 import UIKit
 import Vision
 
@@ -27,6 +28,30 @@ import Vision
         let url = URL(string: "https://stationfinder.toptiergas.com/")
       {
         UIApplication.shared.open(url, options: [:]) { opened in result(opened) }
+        return
+      }
+      if call.method == "openStationInMaps" {
+        guard let station = call.arguments as? [String: Any],
+          let name = station["name"] as? String,
+          let latitude = station["latitude"] as? Double,
+          let longitude = station["longitude"] as? Double
+        else {
+          result(false)
+          return
+        }
+        let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        guard CLLocationCoordinate2DIsValid(coordinate) else {
+          result(false)
+          return
+        }
+        let address = station["address"] as? String ?? ""
+        let placemark = MKPlacemark(
+          coordinate: coordinate,
+          addressDictionary: address.isEmpty ? nil : ["Street": address]
+        )
+        let destination = MKMapItem(placemark: placemark)
+        destination.name = name
+        result(destination.openInMaps(launchOptions: nil))
         return
       }
       guard call.method == "currentLocation" else {

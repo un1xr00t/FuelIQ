@@ -2,3 +2,8 @@
 
 *.apk
 *.xapk
+
+# Brand artwork for the local, private Stations build.
+/mobile/assets/stations/logos/bp-helios.png
+/mobile/assets/stations/logos/getgo.png
+/mobile/assets/stations/logos/top-tier.png

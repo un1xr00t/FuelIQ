@@ -30,7 +30,7 @@ The scanner accepts JPEG, PNG, and HEIC/HEIF photos up to 30 MB and 60 megapixel
 
 ## Pennsylvania station pilot
 
-Search by station name, brand, address, or ZIP where available. **Use my location** asks for iOS When In Use permission and requests a single location fix. Results show up to 30 stations within 25 straight-line miles. Text search works if location is denied or unavailable. Coordinates stay in memory on the device and are never sent to a server.
+Search by station name, brand, address, or ZIP where available. **Use my location** asks for iOS When In Use permission and requests a single location fix. Results show up to 30 stations within 25 straight-line miles. Text search works if location is denied or unavailable. FuelIQ keeps the device location in memory. Tapping a result opens Apple Maps with that station's coordinates and any listed address. The separate **Check TOP TIER™ status** action opens station details with a link to the official finder.
 
 ### Source registry
 
@@ -49,7 +49,7 @@ python tool/build_station_catalog.py /path/to/pennsylvania-latest.osm.pbf assets
 
 Local PNG thumbnails use the following Wikimedia Commons files, marked public domain for copyright on their source pages. Brand marks identify listed stations. Named stations without matching artwork use initials. Generic or unnamed listings use a fuel icon. BP uses the simplified text logo.
 
-In the bundled 3,871-record snapshot, 2,176 records match local logo assets, 1,179 use initials, and 516 use the generic icon. The largest gaps among named listings are Turkey Hill (181), Wawa (177), and GetGo (89). These counts describe catalog records, which may include duplicate sites.
+The local private build can load `bp-helios.png`, `getgo.png`, and `top-tier.png` from `assets/stations/logos/`. These files are git-ignored. The BP artwork comes from a [BP report](https://assets.publishing.service.gov.uk/media/5cecfc92ed915d247844b6e5/Schiehallion___Loyal_Phase_One_Close_Out_Report.pdf), GetGo from its [official site](https://www.getgocafe.com/), and the TOP TIER gasoline decal from the [official pump decal page](https://retailers.toptiergas.com/product/top-tier-pump-decals/). The decal identifies the official finder link. The app shows source attribution in station details.
 
 - `7-eleven.png` · [Logo of 7-Eleven (transparent).svg](https://commons.wikimedia.org/wiki/File:Logo_of_7-Eleven_%28transparent%29.svg)
 - `bp.png` · [Bp textlogo.svg](https://commons.wikimedia.org/wiki/File:Bp_textlogo.svg)

@@ -7,9 +7,10 @@ void main() {
   testWidgets('station cards show a local logo or fallback and open details', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(800, 850));
+    await tester.binding.setSurfaceSize(const Size(800, 950));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     var opened = false;
+    var checked = false;
     await tester.pumpWidget(
       CupertinoApp(
         home: CupertinoPageScaffold(
@@ -30,11 +31,13 @@ void main() {
                     ),
                     miles: .44,
                     onPressed: () => opened = true,
+                    onCheckStatus: () => checked = true,
                   ),
                   StationCard(
                     station: const Station('node/2', 'BP', 'BP', '', 0, 0),
                     miles: null,
                     onPressed: () {},
+                    onCheckStatus: () {},
                   ),
                   StationCard(
                     station: const Station(
@@ -47,6 +50,7 @@ void main() {
                     ),
                     miles: null,
                     onPressed: () {},
+                    onCheckStatus: () {},
                   ),
                   StationCard(
                     station: const Station(
@@ -59,6 +63,7 @@ void main() {
                     ),
                     miles: null,
                     onPressed: () {},
+                    onCheckStatus: () {},
                   ),
                 ],
               ),
@@ -68,16 +73,25 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    final logos = tester.widgetList<Image>(find.byType(Image));
-    expect(logos.map((logo) => (logo.image as AssetImage).assetName), [
-      'assets/stations/logos/sunoco.png',
-      'assets/stations/logos/bp.png',
-    ]);
+    const assets = 'assets/stations/logos';
+    Finder logo(String name) => find.byWidgetPredicate(
+      (widget) =>
+          widget is Image &&
+          widget.image is AssetImage &&
+          (widget.image as AssetImage).assetName == '$assets/$name.png',
+    );
+    expect(logo('sunoco'), findsOneWidget);
+    expect(logo('bp-helios'), findsOneWidget);
+    expect(logo('getgo'), findsOneWidget);
     expect(find.byIcon(CupertinoIcons.drop), findsOneWidget);
     expect(find.text('0.44 mi'), findsOneWidget);
-    expect(find.text('G'), findsOneWidget);
     expect(find.text('Address unavailable'), findsNWidgets(3));
-    expect(find.text('TOP TIER™ status unavailable'), findsNWidgets(4));
+    final checks = find.text('Check TOP TIER™ status');
+    expect(checks, findsNWidgets(4));
+    expect(logo('top-tier'), findsNWidgets(4));
+    await tester.tap(checks.first);
+    expect(checked, isTrue);
+    expect(opened, isFalse);
     await tester.tap(find.text('Sunoco'));
     expect(opened, isTrue);
     expect(tester.takeException(), isNull);

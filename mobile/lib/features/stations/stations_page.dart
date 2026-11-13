@@ -21,6 +21,42 @@ class _StationsPageState extends State<StationsPage> {
   String? _locationMessage;
   bool _locating = false;
 
+  Future<void> _openAppleMaps(Station station) async {
+    try {
+      if (await _channel.invokeMethod<bool>('openStationInMaps', {
+            'name': station.name,
+            'address': station.address,
+            'latitude': station.latitude,
+            'longitude': station.longitude,
+          }) ==
+          true) {
+        return;
+      }
+    } on PlatformException {
+      // Show the destination if Maps could not open.
+    } on MissingPluginException {
+      // Apple Maps is available through the iOS app.
+    }
+    if (!mounted) return;
+    await showCupertinoDialog<void>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Couldn’t open Apple Maps'),
+        content: Text(
+          station.address.isEmpty
+              ? '${station.latitude}, ${station.longitude}'
+              : station.address,
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _openTopTierFinder() async {
     try {
       if (await _channel.invokeMethod<bool>('openTopTierFinder') == true) {
@@ -103,7 +139,7 @@ class _StationsPageState extends State<StationsPage> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'TOP TIER™ status unavailable. Look up this address in the official Station Finder.',
+                  'This listing has no certification data. Check the exact location in the official Station Finder.',
                 ),
                 const SizedBox(height: FuelTheme.compact),
                 FuelAction(
@@ -147,7 +183,16 @@ class _StationsPageState extends State<StationsPage> {
             onPressed: _openTopTierFinder,
             child: Row(
               children: [
-                const FuelIconTile(CupertinoIcons.location),
+                ExcludeSemantics(
+                  child: Image.asset(
+                    'assets/stations/logos/top-tier.png',
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stack) =>
+                        const FuelIconTile(CupertinoIcons.location),
+                  ),
+                ),
                 const SizedBox(width: FuelTheme.compact),
                 Expanded(
                   child: Column(
@@ -251,15 +296,15 @@ class _StationsPageState extends State<StationsPage> {
                       style: _supportingStyle(context),
                     ),
                   const SizedBox(height: 8),
-                  _attribution(catalog.asOf),
-                  const SizedBox(height: FuelTheme.compact),
                   for (final result in results)
                     Padding(
                       padding: const EdgeInsets.only(bottom: FuelTheme.compact),
                       child: StationCard(
                         station: result.station,
                         miles: result.miles,
-                        onPressed: () => _detail(result.station, catalog.asOf),
+                        onPressed: () => _openAppleMaps(result.station),
+                        onCheckStatus: () =>
+                            _detail(result.station, catalog.asOf),
                       ),
                     ),
                 ],
