@@ -347,7 +347,11 @@ void main() {
       expect(find.text(r'$40.50'), findsOneWidget);
       expect(find.textContaining('93 AKI'), findsOneWidget);
       await selectTab(tester, 'Home');
-      expect(find.text(r'$40.50'), findsOneWidget);
+      expect(find.text('Year-to-date spending'), findsOneWidget);
+      expect(find.text('Gallons logged'), findsOneWidget);
+      expect(find.text('Monthly spending'), findsOneWidget);
+      expect(find.text('Latest fill-up'), findsOneWidget);
+      expect(find.text(r'$40.50'), findsNWidgets(4));
 
       await selectTab(tester, 'Fuel Log');
       await tapText(r'$40.50');
