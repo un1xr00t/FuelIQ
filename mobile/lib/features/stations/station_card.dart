@@ -18,23 +18,32 @@ class StationCard extends StatelessWidget {
 
   static const _logos = {
     '7-eleven': '7-eleven',
+    'bp': 'bp',
     'circle k': 'circle-k',
     'citgo': 'citgo',
     'conoco': 'conoco',
+    'costco': 'costco',
+    'costco gasoline': 'costco',
     'exxon': 'exxon',
     'giant': 'giant',
     'gulf': 'gulf',
+    'kwik fill': 'kwik-fill',
+    'kwikfill': 'kwik-fill',
     'lukoil': 'lukoil',
+    'marathon': 'marathon',
     'mobil': 'mobil',
     'pennzoil': 'pennzoil',
     'phillips 66': 'phillips-66',
     'royal farms': 'royal-farms',
     "rutter's": 'rutters',
+    'rutters': 'rutters',
+    "sam's club": 'sams-club',
     'sheetz': 'sheetz',
     'shell': 'shell',
     'shell express': 'shell',
     'speedway': 'speedway',
     'sunoco': 'sunoco',
+    'sunoco gas station': 'sunoco',
     'ta': 'ta',
     'valero': 'valero',
     'weis': 'weis',
@@ -45,10 +54,30 @@ class StationCard extends StatelessWidget {
     final ink = FuelTheme.resolve(context, FuelTheme.ink);
     final muted = FuelTheme.resolve(context, FuelTheme.muted);
     final accent = FuelTheme.resolve(context, FuelTheme.accent);
-    final brand = station.brand.trim().toLowerCase().replaceAll('’', "'");
-    final logo =
-        _logos[brand.isEmpty ? station.name.trim().toLowerCase() : brand];
-    final fallback = Icon(CupertinoIcons.drop, color: accent, size: 23);
+    final brand = station.brand.trim();
+    final label = brand.isEmpty || brand.toLowerCase() == 'none'
+        ? station.name.trim()
+        : brand;
+    final key = label.toLowerCase().replaceAll('’', "'");
+    final logo = _logos[key];
+    final initials = RegExp(r'[\p{L}\p{N}]+', unicode: true)
+        .allMatches(label)
+        .take(2)
+        .map((word) => String.fromCharCode(word.group(0)!.runes.first))
+        .join()
+        .toUpperCase();
+    final fallback =
+        initials.isEmpty ||
+            const {'fuel station', 'gas station', 'independent'}.contains(key)
+        ? Icon(CupertinoIcons.drop, color: accent, size: 23)
+        : Center(
+            child: FittedBox(
+              child: Text(
+                initials,
+                style: FuelTheme.rowTitle.copyWith(color: accent),
+              ),
+            ),
+          );
     final distance = miles == null
         ? null
         : Text(

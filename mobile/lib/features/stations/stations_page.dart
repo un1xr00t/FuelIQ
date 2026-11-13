@@ -105,10 +105,12 @@ class _StationsPageState extends State<StationsPage> {
                 const Text(
                   'TOP TIER™ status unavailable. Look up this address in the official Station Finder.',
                 ),
-                CupertinoButton(
+                const SizedBox(height: FuelTheme.compact),
+                FuelAction(
+                  label: 'Open official Station Finder',
                   onPressed: _openTopTierFinder,
-                  child: const Text('Open official Station Finder'),
                 ),
+                const SizedBox(height: FuelTheme.compact),
                 const Text('Fuel grades and prices unavailable.'),
                 const SizedBox(height: 12),
                 _attribution(asOf),
@@ -124,7 +126,12 @@ class _StationsPageState extends State<StationsPage> {
     '© OpenStreetMap contributors · ODbL 1.0\n'
     'openstreetmap.org/copyright\n'
     'Geofabrik extract · ${asOf.toUtc().toIso8601String().split('T').first} UTC',
-    style: FuelTheme.body,
+    style: _supportingStyle(context),
+  );
+
+  TextStyle _supportingStyle(BuildContext context) => FuelTheme.body.copyWith(
+    color: FuelTheme.resolve(context, FuelTheme.muted),
+    fontSize: 13,
   );
 
   @override
@@ -133,66 +140,97 @@ class _StationsPageState extends State<StationsPage> {
     child: FuelPage(
       title: 'Stations',
       children: [
-        FuelPanel(
+        FuelSurface(
           glow: true,
-          children: [
-            Text('TOP TIER™ Station Finder', style: FuelTheme.rowTitle),
-            const SizedBox(height: FuelTheme.compact),
-            const Text(
-              'Check a specific address for TOP TIER™ Approved Gasoline.',
+          child: CupertinoButton(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            onPressed: _openTopTierFinder,
+            child: Row(
+              children: [
+                const FuelIconTile(CupertinoIcons.location),
+                const SizedBox(width: FuelTheme.compact),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'TOP TIER™',
+                        style: FuelTheme.rowTitle.copyWith(
+                          color: FuelTheme.resolve(context, FuelTheme.ink),
+                        ),
+                      ),
+                      Text(
+                        'Open official Station Finder',
+                        style: _supportingStyle(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: FuelTheme.compact),
+                const ExcludeSemantics(
+                  child: Icon(CupertinoIcons.arrow_up_right, size: 17),
+                ),
+              ],
             ),
-            const SizedBox(height: FuelTheme.gap),
-            FuelAction(
-              label: 'Open official Station Finder',
-              onPressed: _openTopTierFinder,
-            ),
-          ],
+          ),
         ),
         const SizedBox(height: FuelTheme.gap),
-        const Text('Pennsylvania pilot'),
-        const Text(
-          'Local listings may be out of date. TOP TIER™ status is unavailable.',
+        FuelPanel(
+          children: [
+            const Text('Pennsylvania pilot', style: FuelTheme.rowTitle),
+            const SizedBox(height: FuelTheme.compact),
+            CupertinoSearchTextField(
+              placeholder: 'Name, brand, address or ZIP',
+              onChanged: (value) => setState(() {
+                _query = value;
+                if (value.trim().isNotEmpty) _catalog ??= StationCatalog.load();
+              }),
+            ),
+            const SizedBox(height: FuelTheme.compact),
+            FuelAction(
+              label: _locating
+                  ? 'Finding your location…'
+                  : _location == null
+                  ? 'Use my location'
+                  : 'Search all Pennsylvania',
+              onPressed: _locating
+                  ? null
+                  : _location == null
+                  ? _nearby
+                  : () => setState(() => _location = null),
+            ),
+            if (_locationMessage case final message?) ...[
+              const SizedBox(height: FuelTheme.compact),
+              Text(message, style: _supportingStyle(context)),
+            ],
+            if (_location case final location?) ...[
+              const SizedBox(height: FuelTheme.compact),
+              Text(
+                location.accuracy > 500
+                    ? 'Approximate location · within 25 mi'
+                    : 'Within 25 mi · straight-line distance',
+                style: _supportingStyle(context),
+              ),
+            ],
+          ],
         ),
-        const SizedBox(height: 8),
-        CupertinoSearchTextField(
-          placeholder: 'Name, brand, address or ZIP',
-          onChanged: (value) => setState(() {
-            _query = value;
-            if (value.trim().isNotEmpty) _catalog ??= StationCatalog.load();
-          }),
-        ),
-        CupertinoButton(
-          onPressed: _locating ? null : _nearby,
-          child: _locating
-              ? const CupertinoActivityIndicator()
-              : const Text('Use my location'),
-        ),
-        if (_locationMessage case final message?) Text(message),
-        if (_location case final location?) ...[
-          Text(
-            location.accuracy > 500
-                ? 'Approximate location · within 25 mi'
-                : 'Within 25 mi · straight-line distance',
-          ),
-          CupertinoButton(
-            onPressed: () => setState(() => _location = null),
-            child: const Text('Search all Pennsylvania'),
-          ),
-        ],
-        if (_catalog == null)
-          const Text('Search Pennsylvania stations by text or location.')
-        else
+        if (_catalog != null) ...[
+          const SizedBox(height: FuelTheme.gap),
           FutureBuilder<StationCatalog>(
             future: _catalog,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Column(
                   children: [
-                    const Text('Station data unavailable'),
-                    CupertinoButton(
+                    Text(
+                      'Station data unavailable',
+                      style: _supportingStyle(context),
+                    ),
+                    const SizedBox(height: FuelTheme.compact),
+                    FuelAction(
+                      label: 'Retry',
                       onPressed: () =>
                           setState(() => _catalog = StationCatalog.load()),
-                      child: const Text('Retry'),
                     ),
                   ],
                 );
@@ -210,6 +248,7 @@ class _StationsPageState extends State<StationsPage> {
                       _query.trim().isEmpty && _location == null
                           ? 'Enter a search or use your location.'
                           : 'No matching stations in the Pennsylvania catalog.',
+                      style: _supportingStyle(context),
                     ),
                   const SizedBox(height: 8),
                   _attribution(catalog.asOf),
@@ -227,6 +266,7 @@ class _StationsPageState extends State<StationsPage> {
               );
             },
           ),
+        ],
       ],
     ),
   );

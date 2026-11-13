@@ -47,21 +47,28 @@ python tool/build_station_catalog.py /path/to/pennsylvania-latest.osm.pbf assets
 
 ### Station logo sources
 
-Local PNG thumbnails use the following Wikimedia Commons files, marked public domain for copyright on their source pages. Brand marks identify listed stations. Use the generic fuel icon when a station has no matching asset. BP uses the fallback because Wikimedia removed its Helios artwork after a copyright claim.
+Local PNG thumbnails use the following Wikimedia Commons files, marked public domain for copyright on their source pages. Brand marks identify listed stations. Named stations without matching artwork use initials. Generic or unnamed listings use a fuel icon. BP uses the simplified text logo.
+
+In the bundled 3,871-record snapshot, 2,176 records match local logo assets, 1,179 use initials, and 516 use the generic icon. The largest gaps among named listings are Turkey Hill (181), Wawa (177), and GetGo (89). These counts describe catalog records, which may include duplicate sites.
 
 - `7-eleven.png` · [Logo of 7-Eleven (transparent).svg](https://commons.wikimedia.org/wiki/File:Logo_of_7-Eleven_%28transparent%29.svg)
+- `bp.png` · [Bp textlogo.svg](https://commons.wikimedia.org/wiki/File:Bp_textlogo.svg)
 - `circle-k.png` · [Circle K logo 2015.svg](https://commons.wikimedia.org/wiki/File:Circle_K_logo_2015.svg)
 - `citgo.png` · [Citgo logo.svg](https://commons.wikimedia.org/wiki/File:Citgo_logo.svg)
 - `conoco.png` · [Conoco logo.svg](https://commons.wikimedia.org/wiki/File:Conoco_logo.svg)
+- `costco.png` · [Costco Wholesale logo 2010-10-26.svg](https://commons.wikimedia.org/wiki/File:Costco_Wholesale_logo_2010-10-26.svg)
 - `exxon.png` · [Exxon logo.svg](https://commons.wikimedia.org/wiki/File:Exxon_logo.svg)
 - `giant.png` · [Giant-Carlisle logo.svg](https://commons.wikimedia.org/wiki/File:Giant-Carlisle_logo.svg)
 - `gulf.png` · [Gulf Oil logo.svg](https://commons.wikimedia.org/wiki/File:Gulf_Oil_logo.svg)
+- `kwik-fill.png` · [Kwik Fill logo.png](https://commons.wikimedia.org/wiki/File:Kwik_Fill_logo.png)
 - `lukoil.png` · [Lukoil company logo.svg](https://commons.wikimedia.org/wiki/File:Lukoil_company_logo.svg)
+- `marathon.png` · [Marathon Petroleum logo 2022.svg](https://commons.wikimedia.org/wiki/File:Marathon_Petroleum_logo_2022.svg)
 - `mobil.png` · [MobilTextlogo.svg](https://commons.wikimedia.org/wiki/File:MobilTextlogo.svg)
 - `pennzoil.png` · [Pennzoil textlogo.png](https://commons.wikimedia.org/wiki/File:Pennzoil_textlogo.png)
 - `phillips-66.png` · [Phillips 66 logo.svg](https://commons.wikimedia.org/wiki/File:Phillips_66_logo.svg)
 - `royal-farms.png` · [Royal Farms logo.svg](https://commons.wikimedia.org/wiki/File:Royal_Farms_logo.svg)
 - `rutters.png` · [Rutter's Logo.png](https://commons.wikimedia.org/wiki/File:Rutter%27s_Logo.png)
+- `sams-club.png` · [Sam's Club logo 2026.svg](https://commons.wikimedia.org/wiki/File:Sam%27s_Club_logo_2026.svg)
 - `sheetz.png` · [Sheetz logo (2024).svg](https://commons.wikimedia.org/wiki/File:Sheetz_logo_%282024%29.svg)
 - `shell.png` · [Shell 1971 wordmark.svg](https://commons.wikimedia.org/wiki/File:Shell_1971_wordmark.svg)
 - `speedway.png` · [Speedway LLC logo.svg](https://commons.wikimedia.org/wiki/File:Speedway_LLC_logo.svg)
