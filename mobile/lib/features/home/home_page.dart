@@ -30,12 +30,13 @@ class HomePage extends StatelessWidget {
       return FuelPage(
         title: 'FuelIQ',
         silver: true,
+        graphiteHeader: true,
         header: LayoutBuilder(
           builder: (context, constraints) {
             final photo = primary?.photo;
             final profile = CupertinoButton(
               padding: const EdgeInsets.all(8),
-              foregroundColor: FuelTheme.pearlInk,
+              foregroundColor: FuelTheme.resolve(context, FuelTheme.pearlInk),
               onPressed: openGarage,
               child: Column(
                 children: [
@@ -57,7 +58,7 @@ class HomePage extends StatelessWidget {
                     Text(
                       'Primary vehicle',
                       style: FuelTheme.body.copyWith(
-                        color: FuelTheme.pearlMuted,
+                        color: FuelTheme.resolve(context, FuelTheme.pearlMuted),
                       ),
                     ),
                 ],
@@ -66,9 +67,12 @@ class HomePage extends StatelessWidget {
             final stats = Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
+                Text(
                   'Your fuel overview',
-                  style: TextStyle(fontSize: 13, color: FuelTheme.pearlMuted),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: FuelTheme.resolve(context, FuelTheme.pearlMuted),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 _SummaryValue(
@@ -76,9 +80,9 @@ class HomePage extends StatelessWidget {
                   value: dollars(data.spending),
                 ),
                 const SizedBox(height: 8),
-                const ColoredBox(
-                  color: Color(0x22000000),
-                  child: SizedBox(height: .7),
+                ColoredBox(
+                  color: FuelTheme.resolve(context, FuelTheme.border),
+                  child: const SizedBox(height: .7),
                 ),
                 const SizedBox(height: 8),
                 _SummaryValue(
@@ -86,9 +90,12 @@ class HomePage extends StatelessWidget {
                   value: data.fillUps.length.toString(),
                 ),
                 if (data.fillUps.isEmpty)
-                  const Text(
+                  Text(
                     'No fill-ups recorded yet.',
-                    style: TextStyle(fontSize: 13, color: FuelTheme.pearlMuted),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: FuelTheme.resolve(context, FuelTheme.pearlMuted),
+                    ),
                   ),
               ],
             );
@@ -104,9 +111,9 @@ class HomePage extends StatelessWidget {
                 children: [
                   Expanded(child: profile),
                   const SizedBox(width: 10),
-                  const ColoredBox(
-                    color: Color(0x22000000),
-                    child: SizedBox(width: .7, height: double.infinity),
+                  ColoredBox(
+                    color: FuelTheme.resolve(context, FuelTheme.border),
+                    child: const SizedBox(width: .7, height: double.infinity),
                   ),
                   const SizedBox(width: 16),
                   Expanded(child: stats),
@@ -165,9 +172,19 @@ class _SummaryValue extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: FuelTheme.body.copyWith(color: FuelTheme.pearlMuted)),
+      Text(
+        label,
+        style: FuelTheme.body.copyWith(
+          color: FuelTheme.resolve(context, FuelTheme.pearlMuted),
+        ),
+      ),
       const SizedBox(height: 4),
-      Text(value, style: FuelTheme.display.copyWith(color: FuelTheme.pearlInk)),
+      Text(
+        value,
+        style: FuelTheme.display.copyWith(
+          color: FuelTheme.resolve(context, FuelTheme.pearlInk),
+        ),
+      ),
     ],
   );
 }

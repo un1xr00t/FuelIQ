@@ -11,12 +11,14 @@ class FuelPage extends StatelessWidget {
     this.header,
     this.silver = false,
     this.trailing,
+    this.graphiteHeader = false,
   });
 
   final String title;
   final List<Widget> children;
   final Widget? header;
   final bool silver;
+  final bool graphiteHeader;
   final Widget? trailing;
 
   @override
@@ -40,7 +42,21 @@ class FuelPage extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   borderRadius: silver ? headerRadius : null,
-                  gradient: silver && !dark
+                  border: graphiteHeader && dark
+                      ? Border.all(color: const Color(0xFF44474D), width: .7)
+                      : null,
+                  gradient: graphiteHeader && dark
+                      ? const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF35383E),
+                            Color(0xFF23262B),
+                            Color(0xFF16181C),
+                          ],
+                          stops: [0, .5, 1],
+                        )
+                      : silver && !dark
                       ? const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
