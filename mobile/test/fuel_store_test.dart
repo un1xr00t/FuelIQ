@@ -48,6 +48,8 @@ void main() {
     );
     final second = store.data.primaryId!;
     await store.setAppearance('light');
+    expect(store.data.hideStationAddresses, isTrue);
+    await store.setHideStationAddresses(false);
     await store.saveFillUp(
       vehicleId: first,
       date: DateTime.utc(2026, 9, 10),
@@ -66,6 +68,7 @@ void main() {
     expect(reopened.data.primaryId, second);
     expect(reopened.data.vehicle(first)?.photo, 'aW1hZ2U=');
     expect(reopened.data.appearance, 'light');
+    expect(reopened.data.hideStationAddresses, isFalse);
     expect(reopened.data.spending, 3999);
     expect(reopened.data.fillUps.single.full, isFalse);
     expect(reopened.data.fillUps.single.octane, 93);

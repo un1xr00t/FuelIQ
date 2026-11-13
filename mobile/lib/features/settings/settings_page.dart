@@ -23,10 +23,14 @@ class SettingsPage extends StatelessWidget {
     super.key,
     required this.appearance,
     required this.onAppearanceChanged,
+    required this.hideStationAddresses,
+    required this.onHideStationAddressesChanged,
   });
 
   final Appearance appearance;
   final ValueChanged<Appearance> onAppearanceChanged;
+  final bool hideStationAddresses;
+  final ValueChanged<bool> onHideStationAddressesChanged;
 
   Future<void> _configureClaude(BuildContext context) async {
     final configured = await hasClaudeVisionKey();
@@ -142,6 +146,36 @@ class SettingsPage extends StatelessWidget {
                       ),
                     ),
                   ),
+              ],
+            ),
+          ),
+        ),
+        FuelSurface(
+          child: Padding(
+            padding: const EdgeInsets.all(FuelTheme.inset),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Semantics(
+                  header: true,
+                  child: const Text('Privacy', style: FuelTheme.heading),
+                ),
+                const SizedBox(height: FuelTheme.gap),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text('Hide fuel log station addresses'),
+                    ),
+                    const SizedBox(width: FuelTheme.gap),
+                    Semantics(
+                      label: 'Hide fuel log station addresses',
+                      child: CupertinoSwitch(
+                        value: hideStationAddresses,
+                        onChanged: onHideStationAddressesChanged,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

@@ -140,6 +140,19 @@ class _AppShellState extends State<_AppShell> {
             listenable: widget.store,
             builder: (context, _) => SettingsPage(
               appearance: Appearance.saved(widget.store.data.appearance),
+              hideStationAddresses: widget.store.data.hideStationAddresses,
+              onHideStationAddressesChanged: (value) async {
+                try {
+                  await widget.store.setHideStationAddresses(value);
+                } catch (_) {
+                  if (context.mounted) {
+                    await showRecordError(
+                      context,
+                      'Could not save privacy setting.',
+                    );
+                  }
+                }
+              },
               onAppearanceChanged: (value) async {
                 try {
                   await widget.store.setAppearance(value.name);

@@ -13,6 +13,7 @@ class FuelData {
     this.primaryId,
     this.nextId = 1,
     this.appearance = 'dark',
+    this.hideStationAddresses = true,
   });
 
   final List<Vehicle> vehicles;
@@ -20,6 +21,7 @@ class FuelData {
   final int? primaryId;
   final int nextId;
   final String appearance;
+  final bool hideStationAddresses;
 
   int get spending => fillUps.fold(0, (sum, entry) => sum + entry.total);
 
@@ -45,6 +47,7 @@ class FuelData {
       primaryId: json['primaryId'] as int?,
       nextId: json['nextId'] as int,
       appearance: json['appearance'] as String,
+      hideStationAddresses: json['hideStationAddresses'] as bool? ?? true,
     );
     final ids = [...vehicles.map((v) => v.id), ...fillUps.map((f) => f.id)];
     if (ids.toSet().length != ids.length ||
@@ -65,6 +68,7 @@ class FuelData {
     'primaryId': primaryId,
     'nextId': nextId,
     'appearance': appearance,
+    'hideStationAddresses': hideStationAddresses,
   };
 
   FuelData copyWith({
@@ -74,12 +78,14 @@ class FuelData {
     bool clearPrimary = false,
     int? nextId,
     String? appearance,
+    bool? hideStationAddresses,
   }) => FuelData(
     vehicles: List.unmodifiable(vehicles ?? this.vehicles),
     fillUps: List.unmodifiable(fillUps ?? this.fillUps),
     primaryId: clearPrimary ? null : primaryId ?? this.primaryId,
     nextId: nextId ?? this.nextId,
     appearance: appearance ?? this.appearance,
+    hideStationAddresses: hideStationAddresses ?? this.hideStationAddresses,
   );
 }
 
@@ -241,6 +247,9 @@ class FuelStore extends ChangeNotifier {
       fillUps: data.fillUps.where((entry) => entry.id != id).toList(),
     ),
   );
+
+  Future<void> setHideStationAddresses(bool value) =>
+      _commit(data.copyWith(hideStationAddresses: value));
 
   Future<void> setAppearance(String value) =>
       _commit(data.copyWith(appearance: value));

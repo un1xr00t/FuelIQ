@@ -13,6 +13,9 @@ import 'claude_vision.dart';
 import 'fuel_photo_parser.dart';
 import 'fuel_photo_scanner.dart';
 
+String? _stationDisplay(String? label, bool hideAddress) =>
+    hideAddress ? label?.split(' · ').first : label;
+
 bool _sameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
 
@@ -139,7 +142,10 @@ class FuelLogPage extends StatelessWidget {
                                 '${fixed(entry.volume, 3)} gal',
                                 entry.full ? 'Full tank' : 'Partial tank',
                                 if (entry.octane != null) '${entry.octane} AKI',
-                                ?entry.station,
+                                ?_stationDisplay(
+                                  entry.station,
+                                  data.hideStationAddresses,
+                                ),
                                 if (entry.hasDiscrepancy) 'Total differs',
                               ].join(' · '),
                               style: FuelTheme.body.copyWith(
@@ -221,7 +227,20 @@ class _FillUpEditorState extends State<_FillUpEditor> {
   late int _vehicleId = widget.entry?.vehicleId ?? widget.store.data.primaryId!;
   late DateTime _date = widget.entry?.date.toLocal() ?? DateTime.now();
   bool _dateEdited = false;
-  late final _station = TextEditingController(text: widget.entry?.station);
+  bool get _hideStationAddresses => widget.store.data.hideStationAddresses;
+  late String? _selectedStationLabel = widget.entry?.station;
+  late final _station = TextEditingController(
+    text: _stationDisplay(_selectedStationLabel, _hideStationAddresses),
+  );
+
+  String get _stationToSave {
+    final entered = _station.text.trim();
+    return entered ==
+            _stationDisplay(_selectedStationLabel, _hideStationAddresses)
+        ? _selectedStationLabel ?? entered
+        : entered;
+  }
+
   List<Station> _stationSuggestions = const [];
   late bool _full = widget.entry?.full ?? true;
   bool _showDate = false;
@@ -664,7 +683,7 @@ class _FillUpEditorState extends State<_FillUpEditor> {
         full: candidate.full,
         odometer: odometer,
         octane: octane,
-        station: _station.text,
+        station: _stationToSave,
       ),
     );
   }
@@ -795,23 +814,39 @@ class _FillUpEditorState extends State<_FillUpEditor> {
               controller: _station,
               maxLength: 250,
             ),
-            if (_stationSuggestions.isNotEmpty)
-              const Text('Nearby stations from photo location'),
-            for (final station in _stationSuggestions)
-              CupertinoButton(
-                onPressed: disabled
-                    ? null
-                    : () {
-                        _station.text = station.address.isEmpty
-                            ? station.name
-                            : '${station.name} · ${station.address}';
-                      },
-                child: Text(
-                  station.address.isEmpty
-                      ? station.name
-                      : '${station.name} · ${station.address}',
+            if (_stationSuggestions.isNotEmpty) ...[
+              Text(
+                'Nearby stations from photo location',
+                style: FuelTheme.body.copyWith(
+                  color: FuelTheme.resolve(context, FuelTheme.muted),
                 ),
               ),
+              const SizedBox(height: FuelTheme.compact),
+              ListenableBuilder(
+                listenable: _station,
+                builder: (context, _) => Column(
+                  children: [
+                    for (final station in _stationSuggestions)
+                      _StationSuggestionRow(
+                        station: station,
+                        selected:
+                            _stationToSave == _catalogStationLabel(station),
+                        hideAddress: _hideStationAddresses,
+                        onSelected: () {
+                          _selectedStationLabel = _catalogStationLabel(station);
+                          _station.text = _stationDisplay(
+                            _selectedStationLabel,
+                            _hideStationAddresses,
+                          )!;
+                          // Refresh selection when two stations share a name.
+                          setState(() {});
+                        },
+                        enabled: !disabled,
+                      ),
+                  ],
+                ),
+              ),
+            ],
             _scanField(FuelPhotoField.gallons, 'Gallons (US)', decimal),
             _scanField(FuelPhotoField.total, 'Total paid (USD)', decimal),
             _scanField(FuelPhotoField.price, 'Price per gallon (USD)', decimal),
@@ -870,6 +905,101 @@ class _FillUpEditorState extends State<_FillUpEditor> {
             child: const Text('Delete fill-up'),
           ),
       ],
+    );
+  }
+}
+
+String _catalogStationLabel(Station station) => station.address.isEmpty
+    ? station.name
+    : '${station.name} · ${station.address}';
+
+class _StationSuggestionRow extends StatelessWidget {
+  const _StationSuggestionRow({
+    required this.station,
+    required this.selected,
+    required this.hideAddress,
+    required this.onSelected,
+    required this.enabled,
+  });
+
+  final Station station;
+  final bool selected;
+  final bool hideAddress;
+  final VoidCallback onSelected;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = FuelTheme.resolve(context, FuelTheme.accent);
+    final muted = FuelTheme.resolve(context, FuelTheme.muted);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: FuelTheme.gap),
+      child: Semantics(
+        selected: selected,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: selected
+                ? accent.withValues(alpha: 0.12)
+                : FuelTheme.resolve(context, FuelTheme.accentSurface),
+            border: Border.all(
+              color: selected
+                  ? accent
+                  : FuelTheme.resolve(context, FuelTheme.border),
+            ),
+          ),
+          child: CupertinoButton(
+            padding: const EdgeInsets.all(FuelTheme.gap),
+            onPressed: enabled
+                ? () {
+                    FocusScope.of(context).unfocus();
+                    onSelected();
+                  }
+                : null,
+            child: Row(
+              children: [
+                ExcludeSemantics(
+                  child: Icon(CupertinoIcons.location, color: muted, size: 20),
+                ),
+                const SizedBox(width: FuelTheme.gap),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        station.name,
+                        style: FuelTheme.rowTitle.copyWith(
+                          color: FuelTheme.resolve(context, FuelTheme.ink),
+                        ),
+                      ),
+                      if (!hideAddress && station.address.isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          station.address,
+                          style: FuelTheme.body.copyWith(
+                            color: muted,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: FuelTheme.gap),
+                ExcludeSemantics(
+                  child: Icon(
+                    selected
+                        ? CupertinoIcons.check_mark_circled_solid
+                        : CupertinoIcons.circle,
+                    color: selected ? accent : muted,
+                    size: 22,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
