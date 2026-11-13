@@ -65,7 +65,7 @@ import Vision
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
     pickerChannel.setMethodCallHandler { [weak self] call, result in
-      guard call.method == "pickPhoto" else {
+      guard call.method == "pickPhoto" || call.method == "pickFuelPhotos" else {
         result(FlutterMethodNotImplemented)
         return
       }
@@ -83,7 +83,11 @@ import Vision
       while let presented = presenter.presentedViewController { presenter = presented }
       let picker = self.photoPicker as? FuelPhotoPicker ?? FuelPhotoPicker()
       self.photoPicker = picker
-      picker.presentPicker(presenter: presenter, result: result)
+      picker.presentPicker(
+        presenter: presenter,
+        allowsMultiple: call.method == "pickFuelPhotos",
+        result: result
+      )
     }
     let channel = FlutterMethodChannel(
       name: "fueliq/fuel_photo",

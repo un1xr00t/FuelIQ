@@ -61,7 +61,7 @@ The product should feel like an established, meticulously refined premium automo
 
 ### 4. Smart Fill-Up Tracking
 
-- Users upload a photo of a gas pump display, a receipt, or both.
+- Users can scan multiple photos of the selected grade, completed pump display, or fuel receipt into one fill-up draft.
 - Extract EXIF capture time and GPS coordinates **if present**. EXIF generally contains coordinates, not a street address. Reverse-geocode coordinates only with an approved provider or locally maintained data, then match to nearby station records.
 - OCR/vision extraction attempts: fuel grade (e.g., 93 AKI), price per gallon, total amount, gallons, date/time, and station/receipt address if printed.
 - OCR values must be editable, carry confidence scores, and require user review before committing a record.

@@ -219,6 +219,8 @@ class _FillUpEditorState extends State<_FillUpEditor> {
   bool _showDate = false;
   bool _busy = false;
   bool _scanning = false;
+  int _photoNumber = 0;
+  int _photoCount = 0;
   bool _pickingPhoto = false;
   String? _scanStatus;
   final _readings = <FuelPhotoField, PhotoReading>{};
@@ -285,25 +287,44 @@ class _FillUpEditorState extends State<_FillUpEditor> {
     FocusScope.of(context).unfocus();
     setState(() => _pickingPhoto = true);
     try {
-      final photo = await showPhotoPicker(
-        context,
-        title: 'Scan a fill-up',
-        message:
-            'Frame the receipt or completed pump display, including labels. '
-            'For octane, capture the grade marked for this sale.',
-      );
-      if (photo == null) return;
-      final Map<FuelPhotoField, PhotoReading> readings;
-      try {
-        if (!mounted) return;
-        setState(() => _scanning = true);
-        readings = await scanFuelPhoto(photo);
-      } finally {
-        await discardPickedPhoto(photo);
+      final photos = await showFuelPhotoPicker(context);
+      if (photos.isEmpty) return;
+      final readings = <FuelPhotoField, PhotoReading>{};
+      final conflicts = <FuelPhotoField>{};
+      var failed = 0;
+      var empty = 0;
+      for (final (index, photo) in photos.indexed) {
+        if (photo == null) {
+          failed++;
+          continue;
+        }
+        try {
+          if (!mounted) continue;
+          setState(() {
+            _scanning = true;
+            _photoNumber = index + 1;
+            _photoCount = photos.length;
+          });
+          final result = await scanFuelPhoto(photo);
+          if (result.isEmpty) empty++;
+          for (final entry in result.entries) {
+            if (conflicts.contains(entry.key)) continue;
+            final previous = readings[entry.key];
+            if (previous != null && previous.value != entry.value.value) {
+              conflicts.add(entry.key);
+              readings.remove(entry.key);
+            } else if (previous == null ||
+                previous.confidence < entry.value.confidence) {
+              readings[entry.key] = entry.value;
+            }
+          }
+        } catch (_) {
+          failed++;
+        } finally {
+          await discardPickedPhoto(photo);
+        }
       }
       if (!mounted) return;
-      var conflict = false;
-      var added = false;
       setState(() {
         for (final entry in readings.entries) {
           final controller = _controller(entry.key);
@@ -311,26 +332,33 @@ class _FillUpEditorState extends State<_FillUpEditor> {
           if (controller.text.trim().isEmpty) {
             controller.text = text;
             _readings[entry.key] = entry.value;
-            added = true;
-          } else if (controller.text != text) {
-            conflict = true;
+          } else if (_enteredValue(entry.key) != entry.value.value) {
+            conflicts.add(entry.key);
           }
         }
-        _scanStatus = conflict
-            ? 'Photo differs from values already entered. Check the photo and edit those fields if needed.'
-            : readings.isEmpty
-            ? 'No fuel details found. Try a clearer photo or enter values manually.'
-            : added
-            ? 'Review the suggested fields and fill in any blanks before saving.'
-            : 'Photo agrees with the fields already filled in.';
+        final conflictLabels = conflicts.map(
+          (field) => switch (field) {
+            FuelPhotoField.gallons => 'gallons',
+            FuelPhotoField.price => 'price per gallon',
+            FuelPhotoField.total => 'total paid',
+            FuelPhotoField.octane => 'octane',
+          },
+        );
+        _scanStatus = [
+          if (failed > 0)
+            'Could not scan $failed of ${photos.length} selected photos.',
+          if (empty > 0)
+            'No fuel details found in $empty of ${photos.length} selected photos.',
+          if (conflicts.isNotEmpty)
+            'Conflicting readings for ${conflictLabels.join(', ')}. Check the photos and enter the correct values.',
+          'Review the fields and fill in any blanks before saving.',
+        ].join(' ');
       });
-    } on FormatException catch (error) {
-      if (mounted) setState(() => _scanStatus = error.message);
     } catch (_) {
       if (mounted) {
         setState(() {
           _scanStatus =
-              'Could not scan this photo. Check camera access, choose a JPG, PNG or HEIC, or enter values manually.';
+              'Could not open the photos. Try again or enter values manually.';
         });
       }
     } finally {
@@ -341,6 +369,16 @@ class _FillUpEditorState extends State<_FillUpEditor> {
         });
       }
     }
+  }
+
+  int? _enteredValue(FuelPhotoField field) {
+    final text = _controller(field).text.trim();
+    return switch (field) {
+      FuelPhotoField.gallons => parseFixed(text, 3, maximum: 999999),
+      FuelPhotoField.price => parseFixed(text, 3, maximum: 99999),
+      FuelPhotoField.total => parseFixed(text, 2, maximum: 999999),
+      FuelPhotoField.octane => int.tryParse(text),
+    };
   }
 
   void _calculatePrice() {
@@ -534,10 +572,10 @@ class _FillUpEditorState extends State<_FillUpEditor> {
                         Flexible(
                           child: Text(
                             _scanning
-                                ? 'Reading photo…'
+                                ? 'Reading photo $_photoNumber of $_photoCount…'
                                 : _readings.isEmpty
-                                ? 'Scan receipt or pump'
-                                : 'Scan another photo',
+                                ? 'Scan fill-up photos'
+                                : 'Scan more photos',
                           ),
                         ),
                       ],

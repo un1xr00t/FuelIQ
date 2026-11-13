@@ -11,12 +11,14 @@ import UniformTypeIdentifiers
 @available(iOS 17.0, *)
 final class FuelPhotoPicker: NSObject, UISheetPresentationControllerDelegate {
   private var pendingResult: FlutterResult?
+  private var allowsMultiple = false
   private var pendingSelection: [PhotosPickerItem] = []
   private var pickerController: UIHostingController<FuelInlinePhotosPicker>?
   private var actionBarController: UIHostingController<PickerActionBar>?
 
   func presentPicker(
     presenter: UIViewController,
+    allowsMultiple: Bool,
     result: @escaping FlutterResult
   ) {
     guard pendingResult == nil else {
@@ -24,6 +26,7 @@ final class FuelPhotoPicker: NSObject, UISheetPresentationControllerDelegate {
       return
     }
     pendingResult = result
+    self.allowsMultiple = allowsMultiple
     let picker = makePicker(cameraVisible: false)
     let hosting = UIHostingController(rootView: picker)
     hosting.modalPresentationStyle = .pageSheet
@@ -43,7 +46,7 @@ final class FuelPhotoPicker: NSObject, UISheetPresentationControllerDelegate {
 
   private func makePicker(cameraVisible: Bool) -> FuelInlinePhotosPicker {
     FuelInlinePhotosPicker(
-      selectionLimit: 1,
+      selectionLimit: allowsMultiple ? nil : 1,
       cameraVisible: cameraVisible,
       onSelectionChange: { [weak self] items in self?.updateSelection(items) },
       onCameraBack: { [weak self] in self?.showLibrary() },
@@ -118,22 +121,39 @@ final class FuelPhotoPicker: NSObject, UISheetPresentationControllerDelegate {
   }
 
   private func importSelection() {
-    guard let item = pendingSelection.first else { return }
-    finish(nil, importing: item)
+    guard !pendingSelection.isEmpty else { return }
+    finish(nil, importing: pendingSelection)
   }
 
-  private func finish(_ path: String?, importing item: PhotosPickerItem? = nil) {
+  private func finish(_ path: String?, importing items: [PhotosPickerItem] = []) {
     guard let result = pendingResult, let pickerController else { return }
+    let allowsMultiple = self.allowsMultiple
     pendingResult = nil
     clearPickerReferences()
     pickerController.dismiss(animated: true) {
-      guard let item else {
-        result(path)
+      guard !items.isEmpty else {
+        if allowsMultiple, let path {
+          result([path])
+        } else {
+          result(path)
+        }
         return
       }
       Task { @MainActor in
+        if allowsMultiple {
+          var paths: [Any] = []
+          for item in items {
+            if let photo = try? await item.loadTransferable(type: ImportedFuelPhoto.self) {
+              paths.append(photo.url.path)
+            } else {
+              paths.append(NSNull())
+            }
+          }
+          result(paths)
+          return
+        }
         do {
-          guard let photo = try await item.loadTransferable(type: ImportedFuelPhoto.self) else {
+          guard let photo = try await items[0].loadTransferable(type: ImportedFuelPhoto.self) else {
             result(FlutterError(code: "photo_unavailable", message: "Photo could not be loaded.", details: nil))
             return
           }
@@ -161,7 +181,7 @@ final class FuelPhotoPicker: NSObject, UISheetPresentationControllerDelegate {
 
 @available(iOS 17.0, *)
 private struct FuelInlinePhotosPicker: View {
-  let selectionLimit: Int
+  let selectionLimit: Int?
   let cameraVisible: Bool
   let onSelectionChange: ([PhotosPickerItem]) -> Void
   let onCameraBack: () -> Void

@@ -261,6 +261,11 @@ void main() {
       await tapText('Save vehicle');
       expect(find.text('2024 Honda Civic'), findsOneWidget);
       await selectTab(tester, 'Fuel Log');
+      messenger.setMockMethodCallHandler(picker, (call) async {
+        expect(call.method, 'pickFuelPhotos');
+        pickerOpens++;
+        return null;
+      });
       await tapText('Scan a fill-up');
       expect(pickerOpens, 2);
       expect(find.byType(CupertinoActionSheet), findsNothing);
@@ -272,16 +277,36 @@ void main() {
       addTearDown(() => directory.deleteSync(recursive: true));
       final photo = File('${directory.path}/receipt.jpg')
         ..writeAsStringSync('photo');
+      final grade = File('${directory.path}/grade.jpg')
+        ..writeAsStringSync('photo');
+      final failed = File('${directory.path}/failed.jpg')
+        ..writeAsStringSync('photo');
+      final conflict = File('${directory.path}/conflict.jpg')
+        ..writeAsStringSync('photo');
       const scanner = MethodChannel('fueliq/fuel_photo');
       messenger.setMockMethodCallHandler(picker, (call) async {
-        expect(call.method, 'pickPhoto');
-        return photo.path;
+        expect(call.method, 'pickFuelPhotos');
+        return [photo.path, failed.path, grade.path, conflict.path, null];
       });
+      final scanned = <Object?>[];
       messenger.setMockMethodCallHandler(scanner, (call) async {
         expect(call.method, 'recognize');
-        expect(call.arguments, photo.path);
+        scanned.add(call.arguments);
+        if (call.arguments == failed.path) {
+          throw PlatformException(code: 'invalid_image');
+        }
+        final lines = switch (call.arguments) {
+          final path when path == photo.path => [
+            'Gallons 9.95',
+            r'Total $60.00',
+            'PPG 6.030',
+          ],
+          final path when path == grade.path => ['Grade 93'],
+          final path when path == conflict.path => ['PPG 5.999'],
+          _ => throw StateError('Unexpected photo'),
+        };
         return [
-          for (final text in ['Gallons 9.95', r'Total $60.00', 'Grade 93'])
+          for (final text in lines)
             {
               'text': text,
               'confidence': 0.98,
@@ -295,7 +320,14 @@ void main() {
       addTearDown(() {
         messenger.setMockMethodCallHandler(scanner, null);
       });
-      await tapText('Scan receipt or pump');
+      await tapText('Scan fill-up photos');
+      expect(scanned, [photo.path, failed.path, grade.path, conflict.path]);
+      expect(find.textContaining('Could not scan 2 of 5'), findsOneWidget);
+      expect(
+        find.textContaining('Conflicting readings for price per gallon'),
+        findsOneWidget,
+      );
+      expect(find.text('6.030'), findsNothing);
       expect(find.text('9.950'), findsOneWidget);
       expect(find.text('60.00'), findsOneWidget);
       expect(find.text('93'), findsOneWidget);

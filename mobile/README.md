@@ -22,7 +22,7 @@ Garage and Fuel Log use Journal Intelligence V2’s inline photo picker on iOS 1
 
 ## Scan a fill-up
 
-Add a vehicle, open Fuel Log, and tap **Scan a fill-up**. Take a photo or select one from Photos. Use a completed pump display or fuel receipt with the labels visible. You can scan another photo to fill remaining blanks. Check the editable values, enter any missing fields, and tap **Save fill-up**.
+Add a vehicle, open Fuel Log, and tap **Scan a fill-up**. Select the grade photo and completed pump display or receipt together, or take a photo with the camera and use **Scan more photos** to add evidence. FuelIQ reads each selected photo and combines the fields into one draft. It flags conflicting fields and reports photos it could not read. Check the editable values, enter any missing fields, and tap **Save fill-up**.
 
 [Apple Vision](https://developer.apple.com/documentation/vision/recognizing-text-in-images) reads text locally. FuelIQ proposes US gallons, total paid, price per gallon, and explicitly identified octane (85–99 AKI). A row matched by position or read with lower OCR confidence is labeled uncertain. Check that a receipt total covers fuel only. If the price is missing, you can calculate it from the entered gallons and total. A row of octane buttons does not identify the selected grade. Scan a receipt with the grade printed or enter it manually.
 
