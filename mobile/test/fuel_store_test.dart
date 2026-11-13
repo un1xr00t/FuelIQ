@@ -73,6 +73,29 @@ void main() {
     expect(reopened.data.fillUps.single.full, isFalse);
     expect(reopened.data.fillUps.single.octane, 93);
     expect(reopened.data.fillUps.single.station, 'Shell on Main Street');
+
+    final backup = File('${dir.path}/backup.json');
+    await reopened.writeBackup(backup);
+    Future<File> freshFile() async => File('${dir.path}/reinstalled.json');
+    final fresh = FuelStore(file: freshFile);
+    addTearDown(fresh.dispose);
+    await fresh.load();
+    final restored = await fresh.readBackup(backup);
+    await fresh.restoreBackup(restored, current: fresh.data);
+    await fresh.load();
+    expect(fresh.data.toJson(), reopened.data.toJson());
+
+    final beforeChange = fresh.data;
+    await fresh.setAppearance('dark');
+    expect(
+      () => fresh.restoreBackup(restored, current: beforeChange),
+      throwsStateError,
+    );
+    final invalid = await backup.writeAsString('{"version":2}');
+    await expectLater(fresh.readBackup(invalid), throwsFormatException);
+    expect(fresh.data.fillUps.single.station, 'Shell on Main Street');
+    expect(fresh.data.appearance, 'dark');
+
     await expectLater(reopened.deleteVehicle(first), throwsStateError);
     final entry = reopened.data.fillUps.single;
     await reopened.saveFillUp(

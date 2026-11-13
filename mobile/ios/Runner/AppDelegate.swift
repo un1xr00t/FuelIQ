@@ -7,12 +7,14 @@ import MLKitTextRecognition
 import MLKitTextRecognitionCommon
 import MLKitVision
 import UIKit
+import UniformTypeIdentifiers
 import Vision
 import Security
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var photoPicker: AnyObject?
+  private let backupPicker = FuelBackupPicker()
   private let stationLocation = StationLocationRequest()
 
   override func application(
@@ -24,6 +26,13 @@ import Security
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    let backupChannel = FlutterMethodChannel(
+      name: "fueliq/backup",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    backupChannel.setMethodCallHandler { [backupPicker] call, result in
+      backupPicker.open(call, result: result)
+    }
     let locationChannel = FlutterMethodChannel(
       name: "fueliq/station_location",
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
@@ -101,7 +110,13 @@ import Security
     channel.setMethodCallHandler { call, result in
       switch call.method {
       case "hasClaudeKey":
-        result(Self.claudeKey() != nil)
+        Self.readClaudeKey { key, error in
+          if let error = error {
+            result(error)
+          } else {
+            result(key != nil)
+          }
+        }
         return
       case "saveClaudeKey":
         guard let key = call.arguments as? String else {
@@ -111,7 +126,13 @@ import Security
         result(Self.saveClaudeKey(key))
         return
       case "claudeKey":
-        result(Self.claudeKey())
+        Self.readClaudeKey { key, error in
+          if let error = error {
+            result(error)
+          } else {
+            result(key)
+          }
+        }
         return
       case "prepareClaudePhoto":
         guard let path = call.arguments as? String else {
@@ -147,13 +168,23 @@ import Security
     kSecAttrAccount as String: "anthropic_api_key"
   ]
 
-  private static func claudeKey() -> String? {
+  private static func readClaudeKey(_ reply: (String?, FlutterError?) -> Void) {
     var query = claudeKeyQuery
     query[kSecReturnData as String] = true
     var item: CFTypeRef?
-    guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
-      let data = item as? Data else { return nil }
-    return String(data: data, encoding: .utf8)
+    let status = SecItemCopyMatching(query as CFDictionary, &item)
+    if status == errSecItemNotFound {
+      reply(nil, nil)
+      return
+    }
+    guard status == errSecSuccess,
+      let data = item as? Data,
+      let key = String(data: data, encoding: .utf8),
+      !key.isEmpty else {
+      reply(nil, FlutterError(code: "claude_key_read_failed", message: nil, details: status))
+      return
+    }
+    reply(key, nil)
   }
 
   private static func saveClaudeKey(_ key: String) -> Bool {
@@ -343,6 +374,62 @@ import Security
       "width": box.width * region.width / frame.width,
       "height": box.height * region.height / frame.height
     ]
+  }
+}
+
+private final class FuelBackupPicker: NSObject, UIDocumentPickerDelegate {
+  private var pending: FlutterResult?
+  private var importing = false
+
+  func open(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard call.method == "export" || call.method == "import" else {
+      result(FlutterMethodNotImplemented)
+      return
+    }
+    guard pending == nil, var presenter = UIApplication.shared.connectedScenes
+      .compactMap({ $0 as? UIWindowScene })
+      .flatMap(\.windows)
+      .first(where: \.isKeyWindow)?.rootViewController else {
+      result(FlutterError(code: "backup_picker_unavailable", message: nil, details: nil))
+      return
+    }
+    while let presented = presenter.presentedViewController { presenter = presented }
+
+    let picker: UIDocumentPickerViewController
+    importing = call.method == "import"
+    if importing {
+      picker = UIDocumentPickerViewController(forOpeningContentTypes: [.json], asCopy: true)
+    } else if let path = call.arguments as? String {
+      picker = UIDocumentPickerViewController(forExporting: [URL(fileURLWithPath: path)], asCopy: true)
+    } else {
+      result(FlutterError(code: "invalid_backup_path", message: nil, details: nil))
+      return
+    }
+    pending = result
+    picker.delegate = self
+    presenter.present(picker, animated: true)
+  }
+
+  func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+    finish(nil)
+  }
+
+  func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+    guard let url = urls.first else {
+      finish(nil)
+      return
+    }
+    guard importing else {
+      finish(true)
+      return
+    }
+    finish(url.path)
+  }
+
+  private func finish(_ value: Any?) {
+    let reply = pending
+    pending = nil
+    reply?(value)
   }
 }
 

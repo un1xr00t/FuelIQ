@@ -90,6 +90,8 @@ class FuelData {
 }
 
 class FuelStore extends ChangeNotifier {
+  static const maxBackupBytes = 64 * 1024 * 1024;
+
   FuelStore({Future<File> Function()? file}) : _file = file;
 
   factory FuelStore.local() => FuelStore(
@@ -112,6 +114,60 @@ class FuelStore extends ChangeNotifier {
       );
       notifyListeners();
     }
+  }
+
+  Future<void> writeBackup(File file) async {
+    final bytes = utf8.encode(jsonEncode(data.toJson()));
+    if (bytes.length > maxBackupBytes) {
+      throw const FormatException('Backup exceeds the supported size.');
+    }
+    await file.writeAsBytes(bytes, flush: true);
+  }
+
+  Future<FuelData> readBackup(File file) async {
+    final handle = await file.open();
+    try {
+      final bytes = await handle.read(maxBackupBytes + 1);
+      if (bytes.length > maxBackupBytes) {
+        throw const FormatException('Backup exceeds the supported size.');
+      }
+      final backup = FuelData.fromJson(
+        jsonDecode(utf8.decode(bytes)) as Map<String, Object?>,
+      );
+      if (backup.nextId < 1 ||
+          !const ['system', 'light', 'dark'].contains(backup.appearance) ||
+          backup.vehicles.any(
+            (vehicle) =>
+                vehicle.make.trim().isEmpty ||
+                vehicle.model.trim().isEmpty ||
+                vehicle.year < 1886,
+          ) ||
+          backup.fillUps.any(
+            (entry) =>
+                entry.volume <= 0 ||
+                entry.volume > 999999 ||
+                entry.price <= 0 ||
+                entry.price > 99999 ||
+                entry.total <= 0 ||
+                entry.total > 999999 ||
+                (entry.octane != null && !isUsOctane(entry.octane!)) ||
+                (entry.odometer != null &&
+                    (entry.odometer! < 0 || entry.odometer! > 9999999)) ||
+                (entry.station?.length ?? 0) > 250,
+          )) {
+        throw const FormatException('Invalid backup records.');
+      }
+      return backup;
+    } finally {
+      await handle.close();
+    }
+  }
+
+  Future<void> restoreBackup(FuelData backup, {required FuelData current}) {
+    if (!identical(data, current)) {
+      throw StateError('FuelIQ data changed. Try restoring again.');
+    }
+    return _commit(backup);
   }
 
   Future<void> _commit(FuelData next) async {

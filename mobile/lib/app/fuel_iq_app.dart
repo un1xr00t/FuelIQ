@@ -139,6 +139,7 @@ class _AppShellState extends State<_AppShell> {
           _Destination.settings => ListenableBuilder(
             listenable: widget.store,
             builder: (context, _) => SettingsPage(
+              store: widget.store,
               appearance: Appearance.saved(widget.store.data.appearance),
               hideStationAddresses: widget.store.data.hideStationAddresses,
               onHideStationAddressesChanged: (value) async {

@@ -17,6 +17,11 @@ Future<bool> hasClaudeVisionKey() async {
   return await _channel.invokeMethod<bool>('hasClaudeKey') ?? false;
 }
 
+Future<String?> readClaudeVisionKey() async {
+  if (!Platform.isIOS) return null;
+  return _channel.invokeMethod<String>('claudeKey');
+}
+
 Future<bool> saveClaudeVisionKey(String key) async =>
     await _channel.invokeMethod<bool>('saveClaudeKey', key.trim()) ?? false;
 
@@ -28,10 +33,7 @@ Future<
     int failed,
   })
 >
-scanWithClaude(List<XFile> photos) async {
-  final key = await _channel.invokeMethod<String>('claudeKey');
-  if (key == null || key.isEmpty) throw StateError('Claude key unavailable');
-
+scanWithClaude(List<XFile> photos, {required String key}) async {
   final captures = <DateTime>[];
   final locations = <StationLocation>[];
   final content = <Map<String, Object>>[];

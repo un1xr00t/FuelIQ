@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 
 import '../../data/fuel_records.dart';
 import '../../data/fuel_store.dart';
@@ -339,7 +340,19 @@ class _FillUpEditorState extends State<_FillUpEditor> {
     FocusScope.of(context).unfocus();
     setState(() => _pickingPhoto = true);
     try {
-      final useClaude = await hasClaudeVisionKey();
+      final String? claudeKey;
+      try {
+        claudeKey = await readClaudeVisionKey();
+      } on PlatformException {
+        if (mounted) {
+          setState(() {
+            _scanStatus =
+                'Could not read the saved Claude Vision key. Unlock your iPhone and try again, or enter values manually.';
+          });
+        }
+        return;
+      }
+      final useClaude = claudeKey != null;
       if (!mounted) return;
       if (Platform.isIOS && !useClaude) {
         final useLocal = await showCupertinoDialog<bool>(
@@ -372,7 +385,7 @@ class _FillUpEditorState extends State<_FillUpEditor> {
       final locations = <StationLocation>[];
       final unmatchedPhotos = <List<PumpDisplay>>[];
       var failed = 0;
-      if (useClaude) {
+      if (claudeKey != null) {
         try {
           if (!mounted) return;
           setState(() {
@@ -380,7 +393,10 @@ class _FillUpEditorState extends State<_FillUpEditor> {
             _photoNumber = photos.length;
             _photoCount = photos.length;
           });
-          final result = await scanWithClaude(photos.nonNulls.toList());
+          final result = await scanWithClaude(
+            photos.nonNulls.toList(),
+            key: claudeKey,
+          );
           readings.addAll(result.readings);
           captures.addAll(result.captures);
           locations.addAll(result.locations);

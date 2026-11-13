@@ -24,7 +24,13 @@ Garage and Fuel Log use Journal Intelligence V2’s inline photo picker on iOS 1
 
 ## Scan a fill-up
 
-In **Settings → Claude Vision API key**, save your personal Anthropic API key to enable Haiku 5.5 for Fuel Log scans. The key is stored in iOS Keychain. Selected images are resized and re-encoded before they are sent together to Anthropic. The original EXIF capture date is processed on the phone. Each request uses your Anthropic API account. Remove the key in Settings to make local OCR available by explicit choice when starting a scan. The review screen identifies which reader ran. The Mac benchmark reads its key separately from `~/.config/fueliq/anthropic_api_key`.
+In **Settings → Claude Vision API key**, save your personal Anthropic API key to enable Haiku 5.5 for Fuel Log scans. Settings shows when the key is saved in iOS Keychain. After relaunching FuelIQ on the same iPhone, open Settings again to verify the saved status. If a Keychain read fails, unlock the iPhone and retry. Selected images are resized and re-encoded before they are sent together to Anthropic. The original EXIF capture date is processed on the phone. Each request uses your Anthropic API account. Remove the key in Settings to make local OCR available by explicit choice when starting a scan. The review screen identifies which reader ran. The Mac benchmark reads its key separately from `~/.config/fueliq/anthropic_api_key`.
+
+## Back up and restore
+
+Use **Settings → Backup → Export backup** and choose a folder in iCloud Drive outside the app. Check that the file appears in Files. Each export is a manual snapshot of your fill-ups, Garage profiles and vehicle photos, and app preferences. Export again after changes you want to keep. The JSON file can contain station addresses and vehicle photos, so save it in a private folder. The Claude key stays in Keychain.
+
+After reinstalling, select **Settings → Backup → Restore backup**, choose the JSON file in Files, and confirm. Restore replaces the current app records and preferences. Use a test installation to verify a backup and check the restored Garage and Fuel Log.
 
 For local OCR diagnostics, run `python3 tool/pump_scan_capture.py <display-photo> <grade-photo>` from `mobile/` and redirect stdout to a temporary JSON file. Replay it with `FUELIQ_PUMP_SCAN_JSON=<json-file> flutter test test/pump_scan_diagnostic_test.dart`. Set `FUELIQ_PUMP_EXPECTED_JSON` to an object with expected `total` in cents, `gallons` and `price` in thousandths, and `octane` to assert the final fields. The macOS capture runs Apple Vision and the seven-segment reader. Replay also accepts ML Kit lines from an iPhone scan under `alternateText`. Output can contain private OCR text and capture dates. Keep it outside the repository.
 
