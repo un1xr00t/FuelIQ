@@ -183,16 +183,16 @@ void main() {
       await tapText('Save fill-up');
       expect(find.text('Total differs'), findsOneWidget);
       await tapText('Save entered total');
-      expect(find.text(r'$40.50 · 10.000 gal'), findsOneWidget);
+      expect(find.text(r'$40.50'), findsOneWidget);
       expect(find.textContaining('93 AKI'), findsOneWidget);
       await selectTab(tester, 'Home');
       expect(find.text(r'$40.50'), findsOneWidget);
 
       await selectTab(tester, 'Fuel Log');
-      await tapText(r'$40.50 · 10.000 gal');
+      await tapText(r'$40.50');
       await enter(['10.000', '39.99', '3.999']);
       await tapText('Save fill-up');
-      await tapText(r'$39.99 · 10.000 gal');
+      await tapText(r'$39.99');
       await tapText('Delete fill-up');
       await tapText('Delete');
       expect(find.text('No fill-ups yet'), findsOneWidget);

@@ -53,9 +53,15 @@ Future<String> prepareVehiclePhoto(XFile file) async {
 }
 
 class VehiclePhoto extends StatelessWidget {
-  const VehiclePhoto(this.photo, {super.key, required this.size});
+  const VehiclePhoto(
+    this.photo, {
+    super.key,
+    required this.size,
+    this.fit = BoxFit.cover,
+  });
   final String photo;
   final double size;
+  final BoxFit fit;
 
   @override
   Widget build(BuildContext context) => ClipRRect(
@@ -64,7 +70,7 @@ class VehiclePhoto extends StatelessWidget {
       base64Decode(photo),
       width: size,
       height: size,
-      fit: BoxFit.cover,
+      fit: fit,
       excludeFromSemantics: true,
       errorBuilder: (_, _, _) => SizedBox.square(
         dimension: size,

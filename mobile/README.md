@@ -1,6 +1,6 @@
 # FuelIQ for iOS
 
-The iOS app uses a true black background with blue accents in Dark mode, which is the default. Settings saves the selected appearance. Garage supports multiple vehicles, one primary vehicle, and optional photos. Fuel Log supports manual entry, editing, and deletion for full and partial tanks. Home shows all-time spending from saved fill-ups. Stations shows an unavailable state pending an authorized source.
+Dark mode is the default. FuelIQ uses silver headers, graphite panels, and green primary actions. Settings saves the selected appearance. Garage supports multiple vehicles, one primary vehicle, and optional photos. Fuel Log supports manual entry, editing, and deletion for full and partial tanks. Home shows all-time spending from saved fill-ups. Stations shows an unavailable state pending an authorized source.
 
 ## Getting started
 
@@ -13,6 +13,8 @@ flutter run -d <simulator-id>
 ```
 
 For a physical iPhone, open `ios/Runner.xcworkspace` in Xcode and select your development team for the Runner target. Stop any active `flutter run` before building from Xcode. Flutter can temporarily redirect Runner's build output during a device run, which can leave Xcode looking for CocoaPods frameworks in a different directory.
+
+On Flutter 3.41, FuelIQ pins the CocoaPods implementation of `path_provider_foundation` to avoid the [native framework install failure](https://github.com/flutter/flutter/issues/185667). After updating dependencies, run `flutter pub get` from `mobile/`, then `pod install` from `mobile/ios/`. If Xcode still embeds `objective_c.framework`, use **Product > Clean Build Folder** and run again.
 
 The app runs offline and needs no environment variables, account, API keys, or backend. `path_provider` locates the iOS Application Support directory. A versioned JSON snapshot stores vehicle and fill-up IDs, primary vehicle, and appearance. Writes replace the snapshot atomically. Amounts use integer cents and thousandths for US gallons and price per gallon. A difference over two cents prompts for confirmation and preserves the entered total.
 

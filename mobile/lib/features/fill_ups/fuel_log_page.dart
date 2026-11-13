@@ -32,17 +32,29 @@ class FuelLogPage extends StatelessWidget {
     builder: (context, _) {
       final data = store.data;
       final dates = CupertinoLocalizations.of(context);
+      final months = <DateTime, List<FillUp>>{};
+      for (final entry in data.fillUps) {
+        final day = entry.date.toLocal();
+        (months[DateTime(day.year, day.month)] ??= []).add(entry);
+      }
       return FuelPage(
         title: 'Fuel Log',
-        children: [
-          if (data.vehicles.isNotEmpty) ...[
-            _ScanCard(onPressed: () => _edit(context, startScan: true)),
-            CupertinoButton(
-              onPressed: () => _edit(context),
-              child: const Text('Enter manually'),
+        header: Center(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: FuelTheme.pearl,
+              borderRadius: BorderRadius.circular(100),
             ),
-            const SizedBox(height: FuelTheme.gap),
-          ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                '${dollars(data.spending)} total',
+                style: FuelTheme.rowTitle.copyWith(color: FuelTheme.pearlInk),
+              ),
+            ),
+          ),
+        ),
+        children: [
           if (data.fillUps.isEmpty)
             FuelEmptyState(
               icon: CupertinoIcons.drop,
@@ -56,71 +68,118 @@ class FuelLogPage extends StatelessWidget {
               onPressed: openGarage,
               child: const Text('Open Garage'),
             ),
-          for (final entry in data.fillUps) ...[
-            RecordRow(
-              title: '${dollars(entry.total)} · ${fixed(entry.volume, 3)} gal',
-              detail: [
-                data.vehicle(entry.vehicleId)!.name,
-                dates.datePickerMediumDate(entry.date.toLocal()),
-                entry.full ? 'Full tank' : 'Partial tank',
-                if (entry.octane != null) '${entry.octane} AKI',
-                if (entry.hasDiscrepancy) 'Total differs',
-              ].join(' · '),
-              icon: CupertinoIcons.drop,
-              onPressed: () => _edit(context, entry: entry),
+          for (final month in months.entries) ...[
+            FuelSurface(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        '${dates.datePickerMonth(month.key.month)} ${dates.datePickerYear(month.key.year)}',
+                        style: FuelTheme.heading,
+                      ),
+                    ),
+                    for (final (index, entry) in month.value.indexed) ...[
+                      if (index > 0)
+                        Container(
+                          height: 1,
+                          color: FuelTheme.resolve(context, FuelTheme.border),
+                        ),
+                      CupertinoButton(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        foregroundColor: FuelTheme.resolve(
+                          context,
+                          FuelTheme.ink,
+                        ),
+                        onPressed: () => _edit(context, entry: entry),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              dates.datePickerMediumDate(entry.date.toLocal()),
+                              style: FuelTheme.body.copyWith(
+                                color: FuelTheme.resolve(
+                                  context,
+                                  FuelTheme.muted,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Flexible(
+                                  flex: 2,
+                                  child: Text(
+                                    data.vehicle(entry.vehicleId)!.name,
+                                    style: FuelTheme.rowTitle,
+                                  ),
+                                ),
+                                const SizedBox(width: FuelTheme.compact),
+                                Flexible(
+                                  child: Text(
+                                    dollars(entry.total),
+                                    textAlign: TextAlign.end,
+                                    style: FuelTheme.rowTitle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              [
+                                '${fixed(entry.volume, 3)} gal',
+                                entry.full ? 'Full tank' : 'Partial tank',
+                                if (entry.octane != null) '${entry.octane} AKI',
+                                if (entry.hasDiscrepancy) 'Total differs',
+                              ].join(' · '),
+                              style: FuelTheme.body.copyWith(
+                                color: FuelTheme.resolve(
+                                  context,
+                                  FuelTheme.muted,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: FuelTheme.gap),
+          ],
+          const SizedBox(height: FuelTheme.gap),
+          if (data.vehicles.isNotEmpty) ...[
+            FuelSurface(
+              glow: true,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    FuelAction(
+                      label: 'Scan a fill-up',
+                      onPressed: () => _edit(context, startScan: true),
+                    ),
+                    CupertinoButton(
+                      onPressed: () => _edit(context),
+                      child: const Text('Enter manually'),
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: FuelTheme.gap),
           ],
         ],
       );
     },
-  );
-}
-
-class _ScanCard extends StatelessWidget {
-  const _ScanCard({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      color: FuelTheme.resolve(context, FuelTheme.accentSurface),
-      border: Border.all(color: FuelTheme.resolve(context, FuelTheme.border)),
-      borderRadius: BorderRadius.circular(FuelTheme.radius),
-    ),
-    child: CupertinoButton(
-      padding: const EdgeInsets.all(FuelTheme.inset),
-      onPressed: onPressed,
-      child: Row(
-        children: [
-          const FuelIconTile(CupertinoIcons.viewfinder),
-          const SizedBox(width: FuelTheme.gap),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Scan a fill-up',
-                  style: FuelTheme.heading.copyWith(
-                    color: FuelTheme.resolve(context, FuelTheme.ink),
-                  ),
-                ),
-                const SizedBox(height: FuelTheme.compact),
-                Text(
-                  'Receipt or pump photo · Processed on iPhone',
-                  style: FuelTheme.body.copyWith(
-                    color: FuelTheme.resolve(context, FuelTheme.muted),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: FuelTheme.compact),
-          const ExcludeSemantics(child: Icon(CupertinoIcons.chevron_right)),
-        ],
-      ),
-    ),
   );
 }
 
@@ -523,43 +582,56 @@ class _FillUpEditorState extends State<_FillUpEditor> {
               onDateTimeChanged: (date) => setState(() => _date = date),
             ),
           ),
-        const SizedBox(height: FuelTheme.inset),
-        _scanField(FuelPhotoField.gallons, 'Gallons (US)', decimal),
-        _scanField(FuelPhotoField.total, 'Total paid (USD)', decimal),
-        _scanField(FuelPhotoField.price, 'Price per gallon (USD)', decimal),
-        if (_readings.isNotEmpty)
-          ListenableBuilder(
-            listenable: _price,
-            builder: (context, _) => _price.text.trim().isEmpty
-                ? CupertinoButton(
-                    onPressed: disabled ? null : _calculatePrice,
-                    child: const Text('Calculate price from total and gallons'),
-                  )
-                : const SizedBox.shrink(),
-          ),
-        _scanField(
-          FuelPhotoField.octane,
-          'Octane (AKI, optional)',
-          TextInputType.number,
-        ),
-        RecordField(
-          label: 'Odometer (mi, optional)',
-          controller: _odometer,
-          keyboardType: TextInputType.number,
-          maxLength: 7,
-        ),
-        CupertinoFormRow(
-          padding: EdgeInsets.zero,
-          prefix: const Text('Full tank'),
-          child: CupertinoSwitch(
-            value: _full,
-            onChanged: _busy ? null : (value) => setState(() => _full = value),
-          ),
+        const SizedBox(height: FuelTheme.gap),
+        FuelPanel(
+          children: [
+            _scanField(FuelPhotoField.gallons, 'Gallons (US)', decimal),
+            _scanField(FuelPhotoField.total, 'Total paid (USD)', decimal),
+            _scanField(FuelPhotoField.price, 'Price per gallon (USD)', decimal),
+            if (_readings.isNotEmpty)
+              ListenableBuilder(
+                listenable: _price,
+                builder: (context, _) => _price.text.trim().isEmpty
+                    ? CupertinoButton(
+                        onPressed: disabled ? null : _calculatePrice,
+                        child: const Text(
+                          'Calculate price from total and gallons',
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            _scanField(
+              FuelPhotoField.octane,
+              'Octane (AKI, optional)',
+              TextInputType.number,
+            ),
+            RecordField(
+              label: 'Odometer (mi, optional)',
+              controller: _odometer,
+              keyboardType: TextInputType.number,
+              maxLength: 7,
+            ),
+            CupertinoFormRow(
+              padding: EdgeInsets.zero,
+              prefix: const Text('Full tank'),
+              child: CupertinoSwitch(
+                value: _full,
+                onChanged: _busy
+                    ? null
+                    : (value) => setState(() => _full = value),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: FuelTheme.gap),
-        CupertinoButton.filled(
-          onPressed: disabled ? null : _save,
-          child: const Text('Save fill-up'),
+        FuelPanel(
+          glow: true,
+          children: [
+            FuelAction(
+              label: 'Save fill-up',
+              onPressed: disabled ? null : _save,
+            ),
+          ],
         ),
         if (widget.entry != null)
           CupertinoButton(

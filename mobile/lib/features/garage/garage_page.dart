@@ -25,8 +25,41 @@ class GaragePage extends StatelessWidget {
     listenable: store,
     builder: (context, _) {
       final data = store.data;
+      final primary = data.vehicle(data.primaryId);
+      final photo = primary?.photo;
       return FuelPage(
         title: 'My Garage',
+        silver: true,
+        trailing: primary == null
+            ? null
+            : FuelCircleButton(
+                icon: CupertinoIcons.pencil,
+                label: 'Edit primary vehicle',
+                color: FuelTheme.pearlInk,
+                onPressed: () => _edit(context, primary),
+              ),
+        header: AspectRatio(
+          aspectRatio: 1.48,
+          child: ClipRect(
+            child: CustomPaint(
+              painter: const _GarageRibbons(),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
+                child: photo != null
+                    ? VehiclePhoto(
+                        photo,
+                        size: double.infinity,
+                        fit: BoxFit.contain,
+                      )
+                    : const Icon(
+                        CupertinoIcons.car_detailed,
+                        size: 92,
+                        color: Color(0xFF303478),
+                      ),
+              ),
+            ),
+          ),
+        ),
         children: [
           if (data.vehicles.isEmpty)
             const FuelEmptyState(
@@ -54,14 +87,44 @@ class GaragePage extends StatelessWidget {
             ),
             const SizedBox(height: FuelTheme.gap),
           ],
-          CupertinoButton(
-            onPressed: () => _edit(context),
-            child: const Text('Add vehicle'),
+          if (data.vehicles.isEmpty) const SizedBox(height: FuelTheme.gap),
+          FuelPanel(
+            glow: true,
+            children: [
+              FuelAction(label: 'Add vehicle', onPressed: () => _edit(context)),
+            ],
           ),
         ],
       );
     },
   );
+}
+
+class _GarageRibbons extends CustomPainter {
+  const _GarageRibbons();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.scale(size.width, size.height);
+    final ribbon = Path()
+      ..moveTo(-.13, .04)
+      ..cubicTo(.26, .30, .75, .25, 1.12, -.08)
+      ..lineTo(1.12, .27)
+      ..cubicTo(.70, .61, .16, .48, -.13, .32)
+      ..close();
+    final paint = Paint()
+      ..shader = const LinearGradient(
+        colors: [Color(0xFF434AAF), Color(0xFFB7BAE5), Color(0xFF4A50B3)],
+      ).createShader(const Rect.fromLTWH(0, 0, 1, 1));
+    canvas.drawPath(ribbon, paint);
+    canvas.translate(0, .57);
+    canvas.drawPath(ribbon, paint);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _GarageRibbons oldDelegate) => false;
 }
 
 class _VehicleEditor extends StatefulWidget {
@@ -194,26 +257,34 @@ class _VehicleEditorState extends State<_VehicleEditor> {
     return FuelPage(
       title: widget.vehicle == null ? 'Add vehicle' : 'Edit vehicle',
       children: [
-        RecordField(
-          label: 'Year',
-          controller: _year,
-          keyboardType: TextInputType.number,
-          maxLength: 4,
-        ),
-        RecordField(label: 'Make', controller: _make, maxLength: 60),
-        RecordField(label: 'Model', controller: _model, maxLength: 60),
-        RecordField(label: 'Trim (optional)', controller: _trim, maxLength: 60),
-        if (widget.store.data.vehicles.isNotEmpty)
-          CupertinoFormRow(
-            padding: EdgeInsets.zero,
-            prefix: const Text('Primary vehicle'),
-            child: CupertinoSwitch(
-              value: _primary,
-              onChanged: _busy || isPrimary
-                  ? null
-                  : (value) => setState(() => _primary = value),
+        FuelPanel(
+          children: [
+            RecordField(
+              label: 'Year',
+              controller: _year,
+              keyboardType: TextInputType.number,
+              maxLength: 4,
             ),
-          ),
+            RecordField(label: 'Make', controller: _make, maxLength: 60),
+            RecordField(label: 'Model', controller: _model, maxLength: 60),
+            RecordField(
+              label: 'Trim (optional)',
+              controller: _trim,
+              maxLength: 60,
+            ),
+            if (widget.store.data.vehicles.isNotEmpty)
+              CupertinoFormRow(
+                padding: EdgeInsets.zero,
+                prefix: const Text('Primary vehicle'),
+                child: CupertinoSwitch(
+                  value: _primary,
+                  onChanged: _busy || isPrimary
+                      ? null
+                      : (value) => setState(() => _primary = value),
+                ),
+              ),
+          ],
+        ),
         if (_photo case final photo?)
           Center(child: VehiclePhoto(photo, size: 104)),
         CupertinoButton(
@@ -225,9 +296,11 @@ class _VehicleEditorState extends State<_VehicleEditor> {
             onPressed: _busy ? null : () => setState(() => _photo = null),
             child: const Text('Remove photo'),
           ),
-        CupertinoButton.filled(
-          onPressed: _busy ? null : _save,
-          child: const Text('Save vehicle'),
+        FuelPanel(
+          glow: true,
+          children: [
+            FuelAction(label: 'Save vehicle', onPressed: _busy ? null : _save),
+          ],
         ),
         if (widget.vehicle != null)
           CupertinoButton(

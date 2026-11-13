@@ -36,6 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   image_picker: ^1.2.3
   path_provider: ^2.1.5
+  # Keep the CocoaPods implementation while Flutter 3.41 is in use.
+  # https://github.com/flutter/flutter/issues/185667
+  path_provider_foundation: 2.5.1
 
 dev_dependencies:
   flutter_test:

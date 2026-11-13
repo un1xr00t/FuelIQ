@@ -11,6 +11,7 @@ class RecordRow extends StatelessWidget {
     required this.icon,
     required this.onPressed,
     this.thumbnail,
+    this.framed = true,
   });
 
   final String title;
@@ -18,10 +19,11 @@ class RecordRow extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
   final Widget? thumbnail;
+  final bool framed;
 
   @override
-  Widget build(BuildContext context) => FuelSurface(
-    child: CupertinoButton(
+  Widget build(BuildContext context) {
+    final row = CupertinoButton(
       padding: const EdgeInsets.all(FuelTheme.gap),
       onPressed: onPressed,
       child: Row(
@@ -57,8 +59,9 @@ class RecordRow extends StatelessWidget {
           ),
         ],
       ),
-    ),
-  );
+    );
+    return framed ? FuelSurface(child: row) : row;
+  }
 }
 
 class RecordField extends StatelessWidget {
@@ -89,6 +92,14 @@ class RecordField extends StatelessWidget {
             controller: controller,
             keyboardType: keyboardType,
             maxLength: maxLength,
+            decoration: BoxDecoration(
+              color: FuelTheme.resolve(context, FuelTheme.canvas),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                width: .7,
+                color: FuelTheme.resolve(context, FuelTheme.border),
+              ),
+            ),
             padding: const EdgeInsets.all(FuelTheme.gap),
             style: FuelTheme.body.copyWith(
               color: FuelTheme.resolve(context, FuelTheme.ink),
