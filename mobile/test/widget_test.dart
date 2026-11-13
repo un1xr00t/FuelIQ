@@ -101,9 +101,21 @@ void main() {
   testWidgets('Stations extends results only near the scroll boundary', (
     tester,
   ) async {
+    const statusBarHeight = 48.0;
+    tester.view.devicePixelRatio = 1;
+    tester.view.padding = const FakeViewPadding(top: statusBarHeight);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPadding);
     await tester.pumpWidget(const FuelIqApp());
     await tester.pumpAndSettle();
     await selectTab(tester, 'Stations');
+    final scrollView = find.byType(CustomScrollView);
+    final title = find.descendant(
+      of: scrollView,
+      matching: find.text('Stations'),
+    );
+    expect(tester.getTopLeft(scrollView).dy, 0);
+    expect(tester.getTopLeft(title).dy, greaterThan(statusBarHeight));
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     final fixture = utf8.encode(
@@ -146,6 +158,9 @@ void main() {
         .state<ScrollableState>(find.byType(Scrollable).first)
         .position;
     expect(count(), 20);
+    position.jumpTo(30);
+    await tester.pumpAndSettle();
+    expect(tester.getTopLeft(title).dy, lessThan(statusBarHeight));
     position.jumpTo(150);
     await tester.pumpAndSettle();
     expect(count(), 20);

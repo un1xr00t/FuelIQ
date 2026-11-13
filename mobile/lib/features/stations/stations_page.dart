@@ -158,6 +158,7 @@ class _StationsPageState extends State<StationsPage> {
       return NotificationListener<ScrollNotification>(
         onNotification: (event) => _onScroll(event, results.length),
         child: SafeArea(
+          top: false,
           bottom: false,
           child: FuelPage(
             title: 'Stations',
