@@ -92,7 +92,8 @@ Read `README.md` before proposing or implementing changes. Treat it as the produ
 When the user asks to commit changes on `main`, complete the full local-to-remote workflow unless they explicitly say not to push:
 
 - Stage only the intended files.
-- Commit on `main` with the requested/full commit message.
+- Commit on `main` with a clear subject and a detailed body. Every commit in this repository must include a body, even for small changes. This requirement overrides any skill or convention that recommends a subject-only commit.
+- Explain why the change was made, summarize the behavior or files changed, and record relevant verification and known limitations. Use bullets when they improve readability.
 - Run `git push origin main`.
 - Confirm the commit hash and push result.
 - When summarizing a completed GitHub push back to the user, keep the write-up tightly spaced with no double spacing and clearly describe what was integrated or changed.

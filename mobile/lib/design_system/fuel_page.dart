@@ -12,6 +12,7 @@ class FuelPage extends StatelessWidget {
     this.silver = false,
     this.trailing,
     this.graphiteHeader = false,
+    this.contentSliver,
   });
 
   final String title;
@@ -20,6 +21,7 @@ class FuelPage extends StatelessWidget {
   final bool silver;
   final bool graphiteHeader;
   final Widget? trailing;
+  final Widget? contentSliver;
 
   @override
   Widget build(BuildContext context) {
@@ -138,6 +140,7 @@ class FuelPage extends StatelessWidget {
                 ),
               ),
             ),
+            ?contentSliver,
           ],
         ),
       ),

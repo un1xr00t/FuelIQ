@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -95,6 +96,64 @@ void main() {
     await tester.tap(find.text('Open official Station Finder'));
     await tester.pumpAndSettle();
     expect(calls, ['openTopTierFinder']);
+  });
+
+  testWidgets('Stations extends results only near the scroll boundary', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const FuelIqApp());
+    await tester.pumpAndSettle();
+    await selectTab(tester, 'Stations');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    final fixture = utf8.encode(
+      jsonEncode({
+        'version': 1,
+        'asOf': '2026-01-01T00:00:00Z',
+        'stations': [
+          for (var i = 1; i <= 50; i++)
+            {
+              'id': 'node/$i',
+              'name': 'Sheetz $i',
+              'brand': '',
+              'address': '$i Test Street',
+              'latitude': 40.0,
+              'longitude': -80.0,
+            },
+        ],
+      }),
+    );
+    messenger.setMockMessageHandler('flutter/assets', (message) async {
+      final key = utf8.decode(
+        message!.buffer.asUint8List(
+          message.offsetInBytes,
+          message.lengthInBytes,
+        ),
+      );
+      return key == 'assets/stations/pennsylvania.json'
+          ? ByteData.sublistView(Uint8List.fromList(fixture))
+          : null;
+    });
+    addTearDown(() => messenger.setMockMessageHandler('flutter/assets', null));
+    await tester.enterText(find.byType(CupertinoSearchTextField), 'Sheetz');
+    await tester.pumpAndSettle();
+
+    int count() => tester
+        .widget<SliverList>(find.byType(SliverList))
+        .delegate
+        .estimatedChildCount!;
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    expect(count(), 20);
+    position.jumpTo(150);
+    await tester.pumpAndSettle();
+    expect(count(), 20);
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pumpAndSettle();
+    expect(count(), 40);
+    expect(find.text('Address unavailable'), findsNothing);
+    expect(find.text('Check TOP TIER™ status'), findsNothing);
   });
 
   testWidgets('appearance follows system and can be overridden', (

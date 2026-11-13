@@ -12,8 +12,9 @@ void main() {
       '',
       location: (latitude: 40.4406, longitude: -79.9959, accuracy: 100),
     );
-    expect(nearby, hasLength(30));
-    expect(nearby.every((result) => result.miles! <= 25), isTrue);
+    expect(nearby.length, greaterThan(30));
+    expect(nearby.any((result) => result.miles! > 25), isTrue);
+    expect(nearby.every((result) => result.station.isNamed), isTrue);
     final distances = nearby.map((result) => result.miles!).toList();
     expect(distances, orderedEquals([...distances]..sort()));
     expect(
@@ -21,7 +22,7 @@ void main() {
         '',
         location: (latitude: 34.05, longitude: -118.25, accuracy: 100),
       ),
-      isEmpty,
+      isNotEmpty,
     );
   });
 }

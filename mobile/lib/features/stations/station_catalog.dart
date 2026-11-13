@@ -26,6 +26,14 @@ class Station {
   final double latitude;
   final double longitude;
 
+  bool get isNamed => !const {
+    'fuel station',
+    'gas station',
+  }.contains(name.trim().toLowerCase());
+
+  bool get hasStreetAddress =>
+      RegExp(r'^\d+\S*\s+[^,\d]').hasMatch(address.trim());
+
   double milesFrom(StationLocation location) {
     const radians = math.pi / 180;
     final lat = location.latitude * radians;
@@ -94,11 +102,11 @@ class StationCatalog {
     final terms = query.toLowerCase().trim().split(RegExp(r'\s+'));
     final results = <({Station station, double? miles})>[];
     for (final station in stations) {
+      if (!station.isNamed) continue;
       final text = '${station.name} ${station.brand} ${station.address}'
           .toLowerCase();
       if (!terms.every(text.contains)) continue;
       final miles = location == null ? null : station.milesFrom(location);
-      if (miles != null && miles > 25) continue;
       results.add((station: station, miles: miles));
     }
     results.sort((a, b) {
@@ -109,6 +117,6 @@ class StationCatalog {
       final name = a.station.name.compareTo(b.station.name);
       return name == 0 ? a.station.id.compareTo(b.station.id) : name;
     });
-    return results.take(30).toList();
+    return results;
   }
 }
