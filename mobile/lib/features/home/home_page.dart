@@ -2,12 +2,13 @@ import 'package:flutter/cupertino.dart';
 
 import '../../data/fuel_records.dart';
 import '../../data/fuel_store.dart';
+import '../../data/fuel_summary.dart';
 import '../../design_system/fuel_page.dart';
 import '../../design_system/fuel_theme.dart';
 import '../../design_system/record_controls.dart';
 import '../garage/vehicle_photo.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({
     super.key,
     required this.store,
@@ -22,10 +23,26 @@ class HomePage extends StatelessWidget {
   final VoidCallback openStations;
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int? _vehicleId;
+
+  @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: store,
+    listenable: widget.store,
     builder: (context, _) {
-      final data = store.data;
+      final data = widget.store.data;
+      final vehicle = data.vehicle(_vehicleId);
+      final now = DateTime.now();
+      final summary = FuelSummary(
+        data.fillUps,
+        now: now,
+        vehicleId: vehicle?.id,
+      );
+      final months = summary.monthlySpending.keys.toList()..sort();
+      final localizations = CupertinoLocalizations.of(context);
       final primary = data.vehicle(data.primaryId);
       return FuelPage(
         title: 'FuelIQ',
@@ -37,7 +54,7 @@ class HomePage extends StatelessWidget {
             final profile = CupertinoButton(
               padding: const EdgeInsets.all(8),
               foregroundColor: FuelTheme.resolve(context, FuelTheme.pearlInk),
-              onPressed: openGarage,
+              onPressed: widget.openGarage,
               child: Column(
                 children: [
                   ClipOval(
@@ -77,7 +94,7 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 10),
                 _SummaryValue(
                   label: 'All-time spending',
-                  value: dollars(data.spending),
+                  value: dollars(summary.spending),
                 ),
                 const SizedBox(height: 8),
                 ColoredBox(
@@ -87,9 +104,9 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 8),
                 _SummaryValue(
                   label: 'Fill-ups',
-                  value: data.fillUps.length.toString(),
+                  value: summary.count.toString(),
                 ),
-                if (data.fillUps.isEmpty)
+                if (summary.count == 0)
                   Text(
                     'No fill-ups recorded yet.',
                     style: TextStyle(
@@ -126,18 +143,60 @@ class HomePage extends StatelessWidget {
           FuelPanel(
             children: [
               const Text('Fuel activity', style: FuelTheme.heading),
+              if (data.vehicles.isNotEmpty)
+                CupertinoButton(
+                  alignment: Alignment.centerLeft,
+                  padding: EdgeInsets.zero,
+                  onPressed: () => showCupertinoModalPopup<void>(
+                    context: context,
+                    builder: (context) => CupertinoActionSheet(
+                      title: const Text('Filter fuel activity'),
+                      actions: [
+                        for (final option in [null, ...data.vehicles])
+                          CupertinoActionSheetAction(
+                            onPressed: () {
+                              setState(() => _vehicleId = option?.id);
+                              Navigator.pop(context);
+                            },
+                            child: Text(option?.name ?? 'All vehicles'),
+                          ),
+                      ],
+                      cancelButton: CupertinoActionSheetAction(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                    ),
+                  ),
+                  child: Text(vehicle?.name ?? 'All vehicles'),
+                ),
               const SizedBox(height: 16),
               Text(
-                '${fixed(data.fillUps.fold<int>(0, (sum, entry) => sum + entry.volume), 3)} gallons logged',
+                '${fixed(summary.volume, 3)} gallons logged',
                 style: FuelTheme.rowTitle,
               ),
               const SizedBox(height: 8),
               Text(
-                data.fillUps.isEmpty
+                summary.count == 0
                     ? 'Your latest fill-up will appear here.'
-                    : 'Latest fill-up · ${dollars(data.fillUps.first.total)}',
+                    : 'Latest fill-up · ${dollars(summary.latest!.total)}',
                 style: FuelTheme.body,
               ),
+              const SizedBox(height: 12),
+              Text('Year-to-date spending · ${dollars(summary.yearSpending)}'),
+              if (summary.averagePrice case final price?)
+                Text('Average paid · ${dollars(price)}/gal'),
+              if (months.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Monthly spending · ${now.year}',
+                  style: FuelTheme.rowTitle,
+                ),
+                for (final month in months)
+                  Text(
+                    '${localizations.datePickerMonth(month)} · '
+                    '${dollars(summary.monthlySpending[month]!)}',
+                  ),
+              ],
             ],
           ),
           const SizedBox(height: FuelTheme.gap),
@@ -150,7 +209,7 @@ class HomePage extends StatelessWidget {
                   title: 'Station research',
                   detail: 'Station and fuel information',
                   icon: CupertinoIcons.location,
-                  onPressed: openStations,
+                  onPressed: widget.openStations,
                   framed: false,
                 ),
               ],

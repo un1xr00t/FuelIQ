@@ -8,6 +8,7 @@ import '../features/garage/garage_page.dart';
 import '../design_system/fuel_theme.dart';
 import '../features/home/home_page.dart';
 import '../features/settings/settings_page.dart';
+import '../features/stations/stations_page.dart';
 
 class FuelIqApp extends StatefulWidget {
   const FuelIqApp({super.key, this.store});
@@ -129,16 +130,7 @@ class _AppShellState extends State<_AppShell> {
             openFuelLog: () => _open(_Destination.fuelLog),
             openStations: () => _open(_Destination.stations),
           ),
-          _Destination.stations => const FuelPage(
-            title: 'Stations',
-            children: [
-              FuelEmptyState(
-                icon: CupertinoIcons.location,
-                title: 'Station data unavailable',
-                message: 'Station search needs a verified data source.',
-              ),
-            ],
-          ),
+          _Destination.stations => const StationsPage(),
           _Destination.fuelLog => FuelLogPage(
             store: widget.store,
             openGarage: () => _open(_Destination.garage),

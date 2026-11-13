@@ -25,7 +25,7 @@ void main() {
     expect(find.text('Your fuel overview'), findsOneWidget);
 
     const destinations = {
-      'Stations': 'Station data unavailable',
+      'Stations': 'Pennsylvania pilot',
       'Fuel Log': 'No fill-ups yet',
       'Garage': 'No vehicles yet',
       'Settings': 'Appearance',
@@ -42,7 +42,7 @@ void main() {
     await tester.pumpWidget(const FuelIqApp());
     await tester.pumpAndSettle();
 
-    const shortcuts = {'Station research': 'Station data unavailable'};
+    const shortcuts = {'Station research': 'Pennsylvania pilot'};
     for (final entry in shortcuts.entries) {
       final shortcut = find.text(entry.key);
       await tester.ensureVisible(shortcut);
@@ -51,6 +51,30 @@ void main() {
       expect(find.text(entry.value), findsOneWidget);
       await selectTab(tester, 'Home');
     }
+  });
+
+  testWidgets('Stations requests location on tap and handles denial', (
+    tester,
+  ) async {
+    const channel = MethodChannel('fueliq/station_location');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    var requests = 0;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      expect(call.method, 'currentLocation');
+      requests++;
+      throw PlatformException(code: 'denied');
+    });
+    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+    await tester.pumpWidget(const FuelIqApp());
+    await tester.pumpAndSettle();
+    await selectTab(tester, 'Stations');
+    expect(requests, 0);
+    await tester.tap(find.text('Use my location'));
+    await tester.pumpAndSettle();
+    expect(requests, 1);
+    expect(find.textContaining('Location access is off'), findsOneWidget);
+    expect(find.byType(CupertinoSearchTextField), findsOneWidget);
   });
 
   testWidgets('appearance follows system and can be overridden', (
@@ -222,7 +246,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(shortcut);
         await tester.pumpAndSettle();
-        expect(find.text('Station data unavailable'), findsOneWidget);
+        expect(find.text('Pennsylvania pilot'), findsOneWidget);
         await selectTab(tester, 'Fuel Log');
         await selectTab(tester, 'Garage');
         await selectTab(tester, 'Settings');
