@@ -193,6 +193,18 @@ void main() {
     await tester.pumpAndSettle();
     final station50 = find.byKey(const ValueKey('node/50'));
     await tester.ensureVisible(station50);
+    final reportLink = find.descendant(
+      of: station50,
+      matching: find.text('Fuel report'),
+    );
+    await tester.ensureVisible(reportLink);
+    await tester.tap(reportLink);
+    await tester.pumpAndSettle();
+    expect(find.text('Shell V-Power NiTRO+ vs. Shell Regular'), findsOneWidget);
+    expect(find.text('Manufacturer statement'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(station50);
     await tester.tap(station50);
     await tester.pumpAndSettle();
     expect(find.text('Station details'), findsOneWidget);

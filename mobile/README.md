@@ -61,6 +61,18 @@ To regenerate the catalog, download the extract from the source above, install `
 python tool/build_station_catalog.py /path/to/pennsylvania-latest.osm.pbf assets/stations/pennsylvania.json
 ```
 
+### Fuel reports
+
+Matching station results show a **Fuel report** link for Shell, Sunoco,
+Exxon/Mobil, bp/Amoco, and Costco. The link uses the catalog brand. Reports
+cover U.S. products and cannot establish what a particular station stocks.
+Each report separates the retailer’s claim from independent AAA studies and
+EIA octane guidance. The report text is bundled offline. Its dated citations
+open original sources in the browser.
+
+To verify on iPhone, search for Shell, open **Fuel report**, then open a
+source link. Go back and tap the address to open **Station details**.
+
 ### PA DEP tank registration pilot
 
 - Source: [PA DEP Active Storage Tanks GIS layer](https://gis.dep.pa.gov/depgisprd/rest/services/Assessments/AssessmentLayers/MapServer/21). The [PA DEP GIS portal](https://www.pa.gov/agencies/dep/data-and-tools/gis) provides public downloads and app reuse for published data. FuelIQ queried the public ArcGIS layer on November 13, 2026. This is a retrieval date.

@@ -82,6 +82,7 @@ void main() {
       expect(find.text('0.44 mi'), findsOneWidget);
       expect(find.text('Address unavailable'), findsNothing);
       expect(find.text('Check TOP TIER™ status'), findsNothing);
+      expect(find.text('Fuel report'), findsNWidgets(2));
       await tester.tap(find.text('Sunoco'));
       expect(opened, isTrue);
       expect(tester.takeException(), isNull);

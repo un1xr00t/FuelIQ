@@ -44,6 +44,22 @@ import Security
         UIApplication.shared.open(url, options: [:]) { opened in result(opened) }
         return
       }
+      if call.method == "openFuelReportSource" {
+        let sourceHosts: Set<String> = [
+          "www.shell.us", "www.sunoco.com", "www.exxon.com", "www.bp.com",
+          "www.costco.com", "www.eia.gov", "newsroom.aaa.com", "www.aaa.com",
+        ]
+        guard let rawURL = call.arguments as? String,
+          let url = URL(string: rawURL), url.scheme == "https",
+          let host = url.host, sourceHosts.contains(host),
+          url.user == nil, url.password == nil, url.port == nil
+        else {
+          result(false)
+          return
+        }
+        UIApplication.shared.open(url, options: [:]) { opened in result(opened) }
+        return
+      }
       if call.method == "openDepTankRecord" {
         guard let id = call.arguments as? String,
           id.range(of: #"^[0-9]{2}-[0-9]{5}$"#, options: .regularExpression) != nil,

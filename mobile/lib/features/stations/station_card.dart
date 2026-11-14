@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 
 import '../../design_system/fuel_page.dart';
 import '../../design_system/fuel_theme.dart';
+import '../fuel_research/fuel_report.dart';
+import '../fuel_research/fuel_report_page.dart';
 import 'station_catalog.dart';
 
 class StationCard extends StatelessWidget {
@@ -91,95 +93,119 @@ class StationCard extends StatelessWidget {
             ),
           );
 
-    return FuelSurface(
-      child: CupertinoButton(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-        onPressed: onPressed,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final stackDistance =
-                constraints.maxWidth < 260 ||
-                MediaQuery.textScalerOf(context).scale(17) > 23;
-            return Row(
-              children: [
-                ExcludeSemantics(
-                  child: Container(
-                    width: 54,
-                    height: 54,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: logo == null
-                          ? FuelTheme.resolve(context, FuelTheme.accentSurface)
-                          : CupertinoColors.white,
-                    ),
-                    child: logo == null
-                        ? fallback
-                        : Image.asset(
-                            'assets/stations/logos/$logo.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stack) => key == 'bp'
-                                ? Image.asset(
-                                    'assets/stations/logos/bp.png',
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stack) =>
-                                        fallback,
-                                  )
-                                : fallback,
-                          ),
+    final stationButton = CupertinoButton(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      onPressed: onPressed,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final stackDistance =
+              constraints.maxWidth < 260 ||
+              MediaQuery.textScalerOf(context).scale(17) > 23;
+          return Row(
+            children: [
+              ExcludeSemantics(
+                child: Container(
+                  width: 54,
+                  height: 54,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: logo == null
+                        ? FuelTheme.resolve(context, FuelTheme.accentSurface)
+                        : CupertinoColors.white,
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        station.name,
-                        style: FuelTheme.rowTitle.copyWith(color: ink),
-                        maxLines: stackDistance ? null : 2,
-                        overflow: stackDistance ? null : TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        station.address,
-                        style: FuelTheme.body.copyWith(
-                          color: muted,
-                          fontSize: 14,
+                  child: logo == null
+                      ? fallback
+                      : Image.asset(
+                          'assets/stations/logos/$logo.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stack) => key == 'bp'
+                              ? Image.asset(
+                                  'assets/stations/logos/bp.png',
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stack) =>
+                                      fallback,
+                                )
+                              : fallback,
                         ),
-                        maxLines: stackDistance ? null : 2,
-                        overflow: stackDistance ? null : TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      station.name,
+                      style: FuelTheme.rowTitle.copyWith(color: ink),
+                      maxLines: stackDistance ? null : 2,
+                      overflow: stackDistance ? null : TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      station.address,
+                      style: FuelTheme.body.copyWith(
+                        color: muted,
+                        fontSize: 14,
                       ),
-                      if (stackDistance && distance != null) ...[
-                        const SizedBox(height: 4),
-                        distance,
-                      ],
+                      maxLines: stackDistance ? null : 2,
+                      overflow: stackDistance ? null : TextOverflow.ellipsis,
+                    ),
+                    if (stackDistance && distance != null) ...[
+                      const SizedBox(height: 4),
+                      distance,
                     ],
-                  ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              if (!stackDistance && distance != null) ...[
+                Container(
+                  width: 1,
+                  height: 32,
+                  color: FuelTheme.resolve(context, FuelTheme.border),
                 ),
                 const SizedBox(width: 10),
-                if (!stackDistance && distance != null) ...[
-                  Container(
-                    width: 1,
-                    height: 32,
-                    color: FuelTheme.resolve(context, FuelTheme.border),
-                  ),
-                  const SizedBox(width: 10),
-                  distance,
-                  const SizedBox(width: 10),
-                ],
-                ExcludeSemantics(
-                  child: Icon(
-                    CupertinoIcons.chevron_right,
-                    color: muted,
-                    size: 13,
+                distance,
+                const SizedBox(width: 10),
+              ],
+              ExcludeSemantics(
+                child: Icon(
+                  CupertinoIcons.chevron_right,
+                  color: muted,
+                  size: 13,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    final report = FuelReport.forBrand(station.brand);
+    return FuelSurface(
+      child: report == null
+          ? stationButton
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                stationButton,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    alignment: AlignmentDirectional.centerStart,
+                    onPressed: () =>
+                        Navigator.of(context, rootNavigator: true).push(
+                          CupertinoPageRoute<void>(
+                            builder: (context) =>
+                                FuelReportPage(report: report),
+                          ),
+                        ),
+                    child: const Text('Fuel report'),
                   ),
                 ),
               ],
-            );
-          },
-        ),
-      ),
+            ),
     );
   }
 }
