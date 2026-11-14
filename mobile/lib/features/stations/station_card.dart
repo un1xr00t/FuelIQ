@@ -166,14 +166,15 @@ class StationCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   distance,
-                ] else
-                  ExcludeSemantics(
-                    child: Icon(
-                      CupertinoIcons.arrow_up_right,
-                      color: muted,
-                      size: 13,
-                    ),
+                  const SizedBox(width: 10),
+                ],
+                ExcludeSemantics(
+                  child: Icon(
+                    CupertinoIcons.chevron_right,
+                    color: muted,
+                    size: 13,
                   ),
+                ),
               ],
             );
           },

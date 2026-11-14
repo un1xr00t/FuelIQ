@@ -143,6 +143,15 @@ void main() {
         ),
       );
       return switch (key) {
+        'assets/stations/pa_dep_pilot.json' => ByteData.sublistView(
+          Uint8List.fromList(
+            utf8.encode(
+              '{"retrievedOn":"2026-11-13","matches":['
+              '{"stationId":"node/49","facilityId":"00-00001",'
+              '"facilityName":"Test Tank Facility","siteId":1}]}',
+            ),
+          ),
+        ),
         'assets/stations/pennsylvania.json' => ByteData.sublistView(
           Uint8List.fromList(fixture),
         ),
@@ -177,6 +186,31 @@ void main() {
     expect(count(), 40);
     expect(find.text('Address unavailable'), findsNothing);
     expect(find.text('Check TOP TIER™ status'), findsNothing);
+
+    position.jumpTo(0);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(CupertinoSearchTextField), 'Shell 50');
+    await tester.pumpAndSettle();
+    final station50 = find.byKey(const ValueKey('node/50'));
+    await tester.ensureVisible(station50);
+    await tester.tap(station50);
+    await tester.pumpAndSettle();
+    expect(find.text('Station details'), findsOneWidget);
+    expect(find.text('50 Test Street'), findsOneWidget);
+    expect(find.text('Inspection outcomes · Unavailable'), findsOneWidget);
+    expect(find.text('View PA DEP tank record'), findsNothing);
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await tester.pumpAndSettle();
+    expect(station50, findsOneWidget);
+    await tester.enterText(find.byType(CupertinoSearchTextField), 'Shell 49');
+    await tester.pumpAndSettle();
+    final station49 = find.byKey(const ValueKey('node/49'));
+    await tester.ensureVisible(station49);
+    await tester.tap(station49);
+    await tester.pumpAndSettle();
+    expect(find.text('Test Tank Facility'), findsOneWidget);
+    expect(find.text('Facility ID 00-00001 · Site ID 1'), findsOneWidget);
+    expect(find.text('View PA DEP tank record'), findsOneWidget);
   });
 
   testWidgets('appearance follows system and can be overridden', (

@@ -44,6 +44,29 @@ import Security
         UIApplication.shared.open(url, options: [:]) { opened in result(opened) }
         return
       }
+      if call.method == "openDepTankRecord" {
+        guard let id = call.arguments as? String,
+          id.range(of: #"^[0-9]{2}-[0-9]{5}$"#, options: .regularExpression) != nil,
+          var components = URLComponents(
+            string: "https://gis.dep.pa.gov/depgisprd/rest/services/Assessments/AssessmentLayers/MapServer/21/query"
+          )
+        else {
+          result(false)
+          return
+        }
+        components.queryItems = [
+          URLQueryItem(name: "where", value: "FACILITY_ID = '\(id)'"),
+          URLQueryItem(name: "outFields", value: "FACILITY_ID,FACILITY_NAME,FACILITY_ADDRESS1,FACILITY_CITY,SITE_ID"),
+          URLQueryItem(name: "returnGeometry", value: "false"),
+          URLQueryItem(name: "f", value: "html"),
+        ]
+        guard let url = components.url else {
+          result(false)
+          return
+        }
+        UIApplication.shared.open(url, options: [:]) { opened in result(opened) }
+        return
+      }
       if call.method == "openStationInMaps" {
         guard let station = call.arguments as? [String: Any],
           let name = station["name"] as? String,

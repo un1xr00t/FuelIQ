@@ -5,6 +5,7 @@ import '../../design_system/fuel_page.dart';
 import '../../design_system/fuel_theme.dart';
 import 'station_card.dart';
 import 'station_catalog.dart';
+import 'station_detail_page.dart';
 
 class StationsPage extends StatefulWidget {
   const StationsPage({super.key});
@@ -183,7 +184,17 @@ class _StationsPageState extends State<StationsPage> {
                         child: StationCard(
                           station: result.station,
                           miles: result.miles,
-                          onPressed: () => _openAppleMaps(result.station),
+                          onPressed: () =>
+                              Navigator.of(context, rootNavigator: true).push(
+                                CupertinoPageRoute<void>(
+                                  builder: (context) => StationDetailPage(
+                                    station: result.station,
+                                    catalogDate: catalog!.asOf,
+                                    openDirections: () =>
+                                        _openAppleMaps(result.station),
+                                  ),
+                                ),
+                              ),
                         ),
                       ),
                     ),

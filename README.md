@@ -4,7 +4,7 @@
 
 **Primary product:** Flutter mobile application, launching on **iOS first**. Android may follow later using the same Flutter codebase. This is not a React/web frontend project.
 
-> Status: Flutter iOS foundation, offline Garage, manual Fuel Log, and on-device receipt and pump OCR implemented. Home includes offline spending analytics by vehicle. Stations includes an offline Pennsylvania pilot with text and nearby search. Production station APIs and advanced analytics are upcoming milestones. Claims about external data availability, licensing, and API pricing must be verified before implementation.
+> Status: Flutter iOS foundation, offline Garage, manual Fuel Log, and on-device receipt and pump OCR implemented. Home includes offline spending analytics by vehicle. Stations includes an offline Pennsylvania pilot with text and nearby search, station details, and a small PA DEP tank registration pilot. Production station APIs and advanced analytics are upcoming milestones. Claims about external data availability, licensing, and API pricing must be verified before implementation.
 
 ## Vision
 

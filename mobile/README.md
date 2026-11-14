@@ -46,7 +46,7 @@ The scanner accepts JPEG, PNG, and HEIC/HEIF photos up to 30 MB and 60 megapixel
 
 ## Pennsylvania station pilot
 
-Search by station name, brand, street address, or ZIP where available. **Use my location** asks for iOS When In Use permission and requests a single location fix. Results load 20 at a time near the bottom of the scroll, ordered by straight-line distance when location is available. Pagination ends at the last matching Pennsylvania record. Tapping a result opens Apple Maps. The list requires a name and street address, so unnamed and unresolved records are omitted. Text search works offline and when location is denied.
+Search by station name, brand, street address, or ZIP where available. **Use my location** asks for iOS When In Use permission and requests a single location fix. Results load 20 at a time near the bottom of the scroll, ordered by straight-line distance when location is available. Pagination ends at the last matching Pennsylvania record. Tapping a result opens offline station details with the catalog date. Use **Open in Apple Maps** for directions. The list requires a name and street address, so unnamed and unresolved records are omitted. Text search works offline and when location is denied.
 
 ### Source registry
 
@@ -60,6 +60,13 @@ To regenerate the catalog, download the extract from the source above, install `
 ```sh
 python tool/build_station_catalog.py /path/to/pennsylvania-latest.osm.pbf assets/stations/pennsylvania.json
 ```
+
+### PA DEP tank registration pilot
+
+- Source: [PA DEP Active Storage Tanks GIS layer](https://gis.dep.pa.gov/depgisprd/rest/services/Assessments/AssessmentLayers/MapServer/21). The [PA DEP GIS portal](https://www.pa.gov/agencies/dep/data-and-tools/gis) provides public downloads and app reuse for published data. FuelIQ queried the public ArcGIS layer on November 13, 2026. This is a retrieval date.
+- Sample: 25 searchable catalog locations across city, suburban, and small-town groups. Within each group, eligible stations were sorted by city and OSM ID, with a maximum of three per city. The match required one facility with the same normalized street address and city within 75 meters. Review found 6 of 9 urban, 4 of 8 suburban, and 3 of 8 small-town matches. The other 12 yielded no candidate meeting those rules. This convenience sample does not estimate statewide coverage.
+- The [bundled pilot matches](assets/stations/pa_dep_pilot.json) store facility and site IDs by OSM ID. Details display the regulated facility name and link to the official GIS record. Tank registration describes the regulated facility. Inspection outcomes, fuel grades, and site-level TOP TIER status are unavailable in FuelIQ.
+- The app reads the bundled snapshot offline. Only opening the source link requires connectivity. To verify on an iPhone, search for 3200 Airport Road in Allentown, open the result, and check that the official source shows facility 39-06707. Search for 1201 West Hamilton Street and check that tank registration shows **Unavailable**.
 
 ### Station logo sources
 

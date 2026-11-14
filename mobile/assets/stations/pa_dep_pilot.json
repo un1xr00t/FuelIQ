@@ -1,0 +1,83 @@
+{
+  "retrievedOn": "2026-11-13",
+  "matches": [
+    {
+      "stationId": "node/6311975888",
+      "facilityId": "39-06707",
+      "facilityName": "AIRPORT ROAD SUNOCO",
+      "siteId": 579716
+    },
+    {
+      "stationId": "node/6589024299",
+      "facilityId": "39-00027",
+      "facilityName": "ALBINO MINI MART",
+      "siteId": 579639
+    },
+    {
+      "stationId": "node/11036035744",
+      "facilityId": "51-30609",
+      "facilityName": "SUNOCO 80006644",
+      "siteId": 514408
+    },
+    {
+      "stationId": "node/13248742914",
+      "facilityId": "51-30603",
+      "facilityName": "7 ELEVEN 40131",
+      "siteId": 514393
+    },
+    {
+      "stationId": "node/13050115624",
+      "facilityId": "02-30639",
+      "facilityName": "SUNOCO 80006584",
+      "siteId": 515147
+    },
+    {
+      "stationId": "node/3308278861",
+      "facilityId": "02-30628",
+      "facilityName": "KAJAL OIL & GAS",
+      "siteId": 535905
+    },
+    {
+      "stationId": "way/1299371271",
+      "facilityId": "46-40309",
+      "facilityName": "PELICAN PETRO",
+      "siteId": 518084
+    },
+    {
+      "stationId": "way/482914910",
+      "facilityId": "46-06908",
+      "facilityName": "EVB SVC CTR",
+      "siteId": 515171
+    },
+    {
+      "stationId": "node/3415391393",
+      "facilityId": "46-16879",
+      "facilityName": "PA0493",
+      "siteId": 505446
+    },
+    {
+      "stationId": "node/4414031190",
+      "facilityId": "46-06937",
+      "facilityName": "710 S GULPH RD",
+      "siteId": 515172
+    },
+    {
+      "stationId": "way/437102417",
+      "facilityId": "05-60834",
+      "facilityName": "B25",
+      "siteId": 564331
+    },
+    {
+      "stationId": "way/1286680730",
+      "facilityId": "06-36583",
+      "facilityName": "MIDWAY EXXON TRAVEL CENTER",
+      "siteId": 270933
+    },
+    {
+      "stationId": "node/8173668690",
+      "facilityId": "25-32135",
+      "facilityName": "STORE 42",
+      "siteId": 574274
+    }
+  ]
+}
