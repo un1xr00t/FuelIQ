@@ -8,7 +8,7 @@ import 'package:fueliq/app/fuel_iq_app.dart';
 import 'package:fueliq/design_system/fuel_theme.dart';
 
 Finder tab(String label) => find.descendant(
-  of: find.byType(CupertinoTabBar),
+  of: find.bySubtype<CupertinoTabBar>(),
   matching: find.text(label),
 );
 
@@ -37,6 +37,36 @@ void main() {
       await selectTab(tester, entry.key);
       expect(find.text(entry.value), findsOneWidget);
     }
+  });
+
+  testWidgets('Home ends above the raised tab bar on an iPhone', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 640);
+    tester.view.padding = const FakeViewPadding(top: 47, bottom: 34);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetPadding);
+
+    await tester.pumpWidget(const FuelIqApp());
+    await tester.pumpAndSettle();
+
+    final scrollable = tester.state<ScrollableState>(
+      find.byType(Scrollable).first,
+    );
+    scrollable.position.jumpTo(scrollable.position.maxScrollExtent);
+    await tester.pumpAndSettle();
+
+    final bar = find.bySubtype<CupertinoTabBar>();
+    final shortcut = find.text('Station research');
+    expect(
+      tester.getBottomLeft(shortcut).dy,
+      lessThan(tester.getTopLeft(bar).dy),
+    );
+    await tester.tap(shortcut);
+    await tester.pumpAndSettle();
+    expect(find.text('Pennsylvania pilot'), findsOneWidget);
   });
 
   testWidgets('Home shortcuts select the matching tab', (tester) async {

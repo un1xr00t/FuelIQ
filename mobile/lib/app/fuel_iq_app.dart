@@ -113,13 +113,7 @@ class _AppShellState extends State<_AppShell> {
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
       controller: _tabs,
-      tabBar: CupertinoTabBar(
-        backgroundColor: FuelTheme.surface,
-        activeColor: FuelTheme.accent,
-        inactiveColor: FuelTheme.muted,
-        border: const Border(
-          top: BorderSide(color: FuelTheme.border, width: 0),
-        ),
+      tabBar: _FuelTabBar(
         items: [for (final destination in _Destination.values) destination.tab],
       ),
       tabBuilder: (context, index) => CupertinoTabView(
@@ -169,6 +163,167 @@ class _AppShellState extends State<_AppShell> {
             ),
           ),
         },
+      ),
+    );
+  }
+}
+
+class _FuelTabBar extends CupertinoTabBar {
+  const _FuelTabBar({
+    super.key,
+    required super.items,
+    super.currentIndex,
+    super.onTap,
+  }) : super(height: 86);
+
+  static const _bottomGap = 4.0;
+
+  @override
+  // Reserve the whole bar in the tab scaffold, including the raised button.
+  bool opaque(BuildContext context) => true;
+
+  @override
+  CupertinoTabBar copyWith({
+    Key? key,
+    List<BottomNavigationBarItem>? items,
+    Color? backgroundColor,
+    Color? activeColor,
+    Color? inactiveColor,
+    double? iconSize,
+    double? height,
+    Border? border,
+    int? currentIndex,
+    ValueChanged<int>? onTap,
+  }) => _FuelTabBar(
+    key: key ?? this.key,
+    items: items ?? this.items,
+    currentIndex: currentIndex ?? this.currentIndex,
+    onTap: onTap ?? this.onTap,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.viewInsetsOf(context).bottom >= height) {
+      return const SizedBox.shrink();
+    }
+    final surface = FuelTheme.resolve(context, FuelTheme.surface);
+    final borderColor = FuelTheme.resolve(context, FuelTheme.border);
+    final accent = FuelTheme.resolve(context, FuelTheme.accent);
+    final muted = FuelTheme.resolve(context, FuelTheme.muted);
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.symmetric(horizontal: 12),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: _bottomGap),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: SizedBox(
+            width: double.infinity,
+            height: height - _bottomGap,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  top: 16,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: surface,
+                      borderRadius: BorderRadius.circular(40),
+                      border: Border.all(color: borderColor),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x30000000),
+                          blurRadius: 18,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var index = 0; index < items.length; index++)
+                      Expanded(
+                        child: Semantics(
+                          label: items[index].label,
+                          selected: currentIndex == index,
+                          child: CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () => onTap?.call(index),
+                            child: ExcludeSemantics(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  if (index == _Destination.fuelLog.index)
+                                    Container(
+                                      width: 56,
+                                      height: 56,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            currentIndex == index
+                                                ? const Color(0xFF508FFA)
+                                                : FuelTheme.actionStart,
+                                            FuelTheme.actionEnd,
+                                          ],
+                                        ),
+                                        border: Border.all(
+                                          color: surface,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: IconTheme(
+                                        data: const IconThemeData(
+                                          size: 24,
+                                          color: CupertinoColors.white,
+                                        ),
+                                        child: currentIndex == index
+                                            ? items[index].activeIcon
+                                            : items[index].icon,
+                                      ),
+                                    )
+                                  else
+                                    IconTheme(
+                                      data: IconThemeData(
+                                        size: 24,
+                                        color: currentIndex == index
+                                            ? accent
+                                            : muted,
+                                      ),
+                                      child: currentIndex == index
+                                          ? items[index].activeIcon
+                                          : items[index].icon,
+                                    ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    items[index].label!,
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: currentIndex == index
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                      color: currentIndex == index
+                                          ? accent
+                                          : muted,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
