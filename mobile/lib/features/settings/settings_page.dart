@@ -171,6 +171,7 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: FuelTheme.gap),
         FuelSurface(
           child: Padding(
             padding: const EdgeInsets.all(FuelTheme.inset),
@@ -201,13 +202,17 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: FuelTheme.gap),
         FuelSurface(
           child: CupertinoButton(
             onPressed: () => _configureClaude(context),
             child: const Text('Claude Vision API key'),
           ),
         ),
-        if (Platform.isIOS) _BackupControls(store: store),
+        if (Platform.isIOS) ...[
+          const SizedBox(height: FuelTheme.gap),
+          _BackupControls(store: store),
+        ],
       ],
     );
   }
@@ -324,6 +329,7 @@ class _BackupControlsState extends State<_BackupControls> {
           const Text(
             'Save a copy of your fill-ups and Garage in iCloud Drive to restore after reinstalling.',
           ),
+          const SizedBox(height: FuelTheme.compact),
           CupertinoButton(
             onPressed: _busy ? null : () => _run(restoring: false),
             child: const Text('Export backup'),
