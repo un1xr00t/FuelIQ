@@ -1,6 +1,6 @@
 # FuelIQ for iOS
 
-Dark mode is the default. FuelIQ uses adaptive headers, neutral black panels, and blue primary actions. Settings saves the selected appearance. Garage supports multiple vehicles, one primary vehicle, and optional photos. Fuel Log supports manual entry, editing, and deletion for full and partial tanks. Home shows all-time and year-to-date spending, monthly spending, gallons, fill-up count, and average price paid per gallon for all vehicles or a selected vehicle. Month and year boundaries follow device local time. Stations includes an offline Pennsylvania pilot.
+Dark mode is the default. FuelIQ uses rounded graphite headers, softly colored backdrops, frosted cards, and blue primary actions across its tabs, detail pages, and editors. Settings saves the selected appearance. Garage supports multiple vehicles, one primary vehicle, and optional photos. Fuel Log supports manual entry, editing, and deletion for full and partial tanks. Home shows all-time and year-to-date spending, monthly spending, gallons, fill-up count, and average price paid per gallon for all vehicles or a selected vehicle. Month and year boundaries follow device local time. Stations includes an offline Pennsylvania pilot.
 
 ## Getting started
 
@@ -195,3 +195,11 @@ On an iPhone, take a vehicle photo in Garage and verify it persists after saving
 
 
 For Stations on iOS, set a simulated location in Pennsylvania. Open Stations, tap **Use my location**, grant permission, then check distance order and open a detail. Reset permission and repeat with denial. Verify text search still works, including in Airplane Mode. Try a location outside the pilot region.
+
+### Home frost and navigation bloom — November 14, 2026
+
+All FuelPage screens now share a sage/violet/cyan backdrop and clipped frosted card material. Home’s full-width header retains rounded bottom corners, with a translucent graphite-blue gradient, fine highlight, and soft lower shadow to separate the vehicle overview from the activity cards. The shared floating navigation bar uses backdrop blur, a subtle rim, and blue bloom around the selected tab and Fuel Log button. Layout, saved records, and navigation behavior remain unchanged. No animation or additional dependencies were introduced.
+
+Manual verification: inspect Home with and without saved records in both appearances; switch all tabs and check the selected halo; scroll the last Home card above the bar; check large text on a small iPhone. Flutter-rendered light/dark previews were checked with demo records and the local backup; saved app data was not changed. The simulator build succeeds, but installation on the available iOS 26 simulator is blocked by the existing ML Kit simulator architecture limitation. Verify blur smoothness and final appearance on a physical iPhone.
+
+The theme also covers Stations, Fuel Log, Garage, Settings, station details, fuel reports, and record editors through the shared page component. Compact headers use 28-point lower corners; Home and Garage retain 42-point corners. Fuel Log’s total badge uses adaptive colors. Native system dialogs and photo pickers retain their platform appearance. Light/dark previews of all four remaining tabs were checked, alongside the existing navigation, record-editing, pagination, and large-text tests. Check station-list scrolling and blur performance on a physical iPhone before release.

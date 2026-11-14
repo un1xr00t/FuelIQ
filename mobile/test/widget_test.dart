@@ -39,7 +39,7 @@ void main() {
     }
   });
 
-  testWidgets('Home ends above the raised tab bar on an iPhone', (
+  testWidgets('Home scrolls behind the floating bar and ends above it', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -60,6 +60,10 @@ void main() {
 
     final bar = find.bySubtype<CupertinoTabBar>();
     final shortcut = find.text('Station research');
+    expect(
+      tester.getBottomLeft(find.byType(CustomScrollView).first).dy,
+      greaterThan(tester.getBottomLeft(tab('Home')).dy),
+    );
     expect(
       tester.getBottomLeft(shortcut).dy,
       lessThan(tester.getTopLeft(bar).dy),

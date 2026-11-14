@@ -45,6 +45,7 @@ class _HomePageState extends State<HomePage> {
       final primary = data.vehicle(data.primaryId);
       return FuelPage(
         title: 'FuelIQ',
+        frosted: true,
         silver: true,
         graphiteHeader: true,
         header: LayoutBuilder(

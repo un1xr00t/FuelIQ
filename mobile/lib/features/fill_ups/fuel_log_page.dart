@@ -50,14 +50,16 @@ class FuelLogPage extends StatelessWidget {
         header: Center(
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: FuelTheme.pearl,
+              color: FuelTheme.resolve(context, FuelTheme.accentSurface),
               borderRadius: BorderRadius.circular(100),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
                 '${dollars(data.spending)} total',
-                style: FuelTheme.rowTitle.copyWith(color: FuelTheme.pearlInk),
+                style: FuelTheme.rowTitle.copyWith(
+                  color: FuelTheme.resolve(context, FuelTheme.ink),
+                ),
               ),
             ),
           ),

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 
 import '../data/fuel_store.dart';
@@ -179,8 +181,8 @@ class _FuelTabBar extends CupertinoTabBar {
   static const _bottomGap = 4.0;
 
   @override
-  // Reserve the whole bar in the tab scaffold, including the raised button.
-  bool opaque(BuildContext context) => true;
+  // Let pages draw behind the pill and receive its height as a bottom inset.
+  bool opaque(BuildContext context) => false;
 
   @override
   CupertinoTabBar copyWith({
@@ -206,6 +208,7 @@ class _FuelTabBar extends CupertinoTabBar {
     if (MediaQuery.viewInsetsOf(context).bottom >= height) {
       return const SizedBox.shrink();
     }
+    final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
     final surface = FuelTheme.resolve(context, FuelTheme.surface);
     final accent = FuelTheme.resolve(context, FuelTheme.accent);
     final muted = FuelTheme.resolve(context, FuelTheme.muted);
@@ -220,12 +223,12 @@ class _FuelTabBar extends CupertinoTabBar {
             width: double.infinity,
             height: height - _bottomGap,
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
                 Positioned.fill(
                   top: 16,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: surface,
                       borderRadius: BorderRadius.circular(40),
                       boxShadow: const [
                         BoxShadow(
@@ -234,6 +237,61 @@ class _FuelTabBar extends CupertinoTabBar {
                           offset: Offset(0, 4),
                         ),
                       ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(40),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(40),
+                            border: Border.all(
+                              color: CupertinoColors.white.withValues(
+                                alpha: dark ? .13 : .65,
+                              ),
+                              width: .7,
+                            ),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: dark
+                                  ? [
+                                      const Color(0xDB354248),
+                                      const Color(0xE0202B32),
+                                    ]
+                                  : [
+                                      const Color(0xEDFFFFFF),
+                                      const Color(0xD9DFE8EF),
+                                    ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  top: 16,
+                  child: IgnorePointer(
+                    child: Align(
+                      alignment: Alignment(
+                        -1 + 2 * (currentIndex + .5) / items.length,
+                        0,
+                      ),
+                      child: Container(
+                        width: 38,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: accent.withValues(alpha: dark ? .55 : .22),
+                              blurRadius: 28,
+                              spreadRadius: 7,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -258,6 +316,17 @@ class _FuelTabBar extends CupertinoTabBar {
                                       height: 56,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: accent.withValues(
+                                              alpha: currentIndex == index
+                                                  ? .5
+                                                  : .25,
+                                            ),
+                                            blurRadius: 22,
+                                            spreadRadius: 1,
+                                          ),
+                                        ],
                                         gradient: LinearGradient(
                                           begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
@@ -269,8 +338,10 @@ class _FuelTabBar extends CupertinoTabBar {
                                           ],
                                         ),
                                         border: Border.all(
-                                          color: surface,
-                                          width: 2,
+                                          color: dark
+                                              ? const Color(0xFF76ACFF)
+                                              : surface,
+                                          width: 1.2,
                                         ),
                                       ),
                                       child: IconTheme(

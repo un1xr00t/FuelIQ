@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 import 'fuel_theme.dart';
+import 'fuel_frost.dart';
 
 class FuelPage extends StatelessWidget {
   const FuelPage({
@@ -11,10 +12,12 @@ class FuelPage extends StatelessWidget {
     this.header,
     this.silver = false,
     this.trailing,
-    this.graphiteHeader = false,
+    this.graphiteHeader = true,
     this.contentSliver,
+    this.frosted = true,
   });
 
+  final bool frosted;
   final String title;
   final List<Widget> children;
   final Widget? header;
@@ -33,116 +36,165 @@ class FuelPage extends StatelessWidget {
     final titleStyle = title == 'FuelIQ' || title == 'My Garage'
         ? FuelTheme.wordmark
         : FuelTheme.heading;
-    final headerRadius = BorderRadius.vertical(bottom: Radius.circular(42));
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-      child: CupertinoPageScaffold(
-        child: CustomScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          slivers: [
-            SliverToBoxAdapter(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: silver ? headerRadius : null,
-                  border: graphiteHeader && dark
-                      ? Border.all(color: const Color(0xFF44474D), width: .7)
-                      : null,
-                  gradient: graphiteHeader && dark
-                      ? const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF35383E),
-                            Color(0xFF23262B),
-                            Color(0xFF16181C),
-                          ],
-                          stops: [0, .5, 1],
-                        )
-                      : silver && !dark
-                      ? const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFFF5F5F4), Color(0xFFDBDBDA)],
-                        )
-                      : null,
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: FuelTheme.contentWidth,
+    final headerRadius = BorderRadius.vertical(
+      bottom: Radius.circular(silver ? 42 : 28),
+    );
+    final scrollView = CustomScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      slivers: [
+        SliverToBoxAdapter(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: silver || frosted ? headerRadius : null,
+              boxShadow: frosted && graphiteHeader
+                  ? [
+                      BoxShadow(
+                        color: const Color(
+                          0xFF020A14,
+                        ).withValues(alpha: dark ? .28 : .10),
+                        blurRadius: 24,
+                        offset: const Offset(0, 10),
                       ),
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          16,
-                          8,
-                          16,
-                          silver ? 20 : 6,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                if (canPop)
-                                  FuelCircleButton(
-                                    icon: CupertinoIcons.chevron_back,
-                                    label: 'Back',
-                                    color: ink,
-                                    onPressed: () =>
-                                        Navigator.maybePop(context),
-                                  )
-                                else
-                                  const SizedBox(width: 44),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Semantics(
-                                    header: true,
-                                    child: Text(
-                                      title,
-                                      textAlign: TextAlign.center,
-                                      style: titleStyle.copyWith(color: ink),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                trailing ?? const SizedBox(width: 44),
-                              ],
-                            ),
-                            if (header case final content?) ...[
-                              const SizedBox(height: 10),
-                              content,
+                    ]
+                  : null,
+              border: frosted && graphiteHeader
+                  ? Border.all(
+                      color: dark
+                          ? const Color(0x527F9EBB)
+                          : const Color(0xB3FFFFFF),
+                      width: .7,
+                    )
+                  : !frosted && graphiteHeader && dark
+                  ? Border.all(color: const Color(0xFF44474D), width: .7)
+                  : null,
+              gradient: frosted && graphiteHeader
+                  ? LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: dark
+                          ? const [
+                              Color(0xB3384657),
+                              Color(0xCC202A38),
+                              Color(0xE6121C27),
+                            ]
+                          : const [
+                              Color(0xEFFFFFFF),
+                              Color(0xCDE5ECF6),
+                              Color(0xE6D5E0EE),
                             ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+                      stops: const [0, .48, 1],
+                    )
+                  : !frosted && graphiteHeader && dark
+                  ? const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF35383E),
+                        Color(0xFF23262B),
+                        Color(0xFF16181C),
+                      ],
+                      stops: [0, .5, 1],
+                    )
+                  : !frosted && silver && !dark
+                  ? const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFF5F5F4), Color(0xFFDBDBDA)],
+                    )
+                  : null,
             ),
-            SliverToBoxAdapter(
-              child: SafeArea(
-                top: false,
-                bottom: false,
-                minimum: const EdgeInsets.fromLTRB(12, 12, 12, 28),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: FuelTheme.contentWidth,
+            child: SafeArea(
+              bottom: false,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: FuelTheme.contentWidth,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      16,
+                      8,
+                      16,
+                      silver ? 20 : (frosted ? 16 : 6),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: children,
+                      children: [
+                        Row(
+                          children: [
+                            if (canPop)
+                              FuelCircleButton(
+                                icon: CupertinoIcons.chevron_back,
+                                label: 'Back',
+                                color: ink,
+                                onPressed: () => Navigator.maybePop(context),
+                              )
+                            else
+                              const SizedBox(width: 44),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Semantics(
+                                header: true,
+                                child: Text(
+                                  title,
+                                  textAlign: TextAlign.center,
+                                  style: titleStyle.copyWith(color: ink),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            trailing ?? const SizedBox(width: 44),
+                          ],
+                        ),
+                        if (header case final content?) ...[
+                          const SizedBox(height: 10),
+                          content,
+                        ],
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-            ?contentSliver,
-          ],
+          ),
         ),
+        SliverToBoxAdapter(
+          child: SafeArea(
+            top: false,
+            bottom: false,
+            minimum: const EdgeInsets.fromLTRB(12, 12, 12, 28),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: FuelTheme.contentWidth,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: children,
+                ),
+              ),
+            ),
+          ),
+        ),
+        ?contentSliver,
+        // The tab scaffold includes the floating bar in the bottom inset.
+        // Applying it after every content sliver keeps the last item clear.
+        const SliverToBoxAdapter(
+          child: SafeArea(
+            top: false,
+            left: false,
+            right: false,
+            child: SizedBox.shrink(),
+          ),
+        ),
+      ],
+    );
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      child: CupertinoPageScaffold(
+        child: frosted
+            ? FuelFrost(child: FuelFrostBackground(child: scrollView))
+            : scrollView,
       ),
     );
   }
@@ -202,6 +254,7 @@ class FuelSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    if (FuelFrost.of(context)) return FuelFrostSurface(child: child);
     final border = FuelTheme.resolve(context, FuelTheme.border);
     final surface = FuelTheme.resolve(context, FuelTheme.surface);
     return DecoratedBox(

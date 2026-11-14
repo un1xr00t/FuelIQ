@@ -82,7 +82,7 @@ The product should feel like an established, meticulously refined premium automo
 
 ## Experience and design direction
 
-FuelIQ uses a split silver panel on Home, compact dark toolbars, graphite panels with fine highlights, and blue primary actions. Garage frames the primary vehicle’s saved photo edge to edge. Dark mode uses black backgrounds throughout. Fuel Log shows month-grouped activity before the entry controls. The iOS app offers system, light, and dark appearance options. Aim for excellent typography, restrained motion, refined spacing, responsive layouts, accessible contrast, keyboard support, smooth loading states, helpful validation, and cohesive visual hierarchy. Avoid overly complex custom map pins or decorative code-driven marker drawing.
+All app pages use a softly colored charcoal backdrop, rounded graphite headers, and frosted translucent cards, with a pale adaptive treatment in light mode. The floating navigation bar uses blur, a fine highlight, and blue bloom around the active destination and Fuel Log action. Blue primary actions and each screen’s existing content layout are preserved. Garage frames the primary vehicle’s saved photo edge to edge. Detail and editor pages share the same adaptive material treatment. Fuel Log shows month-grouped activity before the entry controls. The iOS app offers system, light, and dark appearance options. Aim for excellent typography, restrained motion, refined spacing, responsive layouts, accessible contrast, keyboard support, smooth loading states, helpful validation, and cohesive visual hierarchy. Avoid overly complex custom map pins or decorative code-driven marker drawing.
 
 ## Suggested initial architecture (subject to repo inspection)
 
