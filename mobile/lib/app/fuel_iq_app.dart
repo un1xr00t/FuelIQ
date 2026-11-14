@@ -207,7 +207,6 @@ class _FuelTabBar extends CupertinoTabBar {
       return const SizedBox.shrink();
     }
     final surface = FuelTheme.resolve(context, FuelTheme.surface);
-    final borderColor = FuelTheme.resolve(context, FuelTheme.border);
     final accent = FuelTheme.resolve(context, FuelTheme.accent);
     final muted = FuelTheme.resolve(context, FuelTheme.muted);
     return SafeArea(
@@ -228,7 +227,6 @@ class _FuelTabBar extends CupertinoTabBar {
                     decoration: BoxDecoration(
                       color: surface,
                       borderRadius: BorderRadius.circular(40),
-                      border: Border.all(color: borderColor),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x30000000),
