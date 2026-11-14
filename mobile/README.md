@@ -70,13 +70,56 @@ Search by station name, brand, street address, or ZIP where available. **Use my 
 - **Station locations:** [Geofabrik Pennsylvania OSM PBF](https://download.geofabrik.de/north-america/us/pennsylvania.html), [download endpoint](https://download.geofabrik.de/north-america/us/pennsylvania-latest.osm.pbf). Public bulk download, no API key or paid service. Geofabrik publishes updated extracts regularly. The app uses a bundled snapshot and makes no live requests. Refresh the asset to update the app.
 - **Rights:** © OpenStreetMap contributors. [ODbL 1.0 and attribution](https://www.openstreetmap.org/copyright). The [derived database](assets/stations/pennsylvania.json) is available under ODbL 1.0. Include a public copy of that file under ODbL when distributing the app. The raw extract is not included in the repository.
 - **Snapshot:** Source timestamp 2026-11-12 21:23:05 UTC, retrieved November 13, 2026. SHA-256 of input PBF is `28a1f47d47f2814ea545d99d72812a9a5048c0a79225841618b4848bc7e91bbf`. 3,871 records include source type and ID, name, brand, address, and coordinates. 1,615 have any mapped address component after filling or completing 19 addresses from the same extract. The importer accepts a unique address at the same mapped point (within 0.000003° on each axis) or inside a single-ring station footprint. Search shows 1,527 named records with a street address. Fuel POIs come from `amenity=fuel`, with explicitly private or prohibited access excluded. Areas use their outer ring bounding-box midpoint. Duplicate source IDs are rejected, but separate mapped objects may describe one physical site.
-- **Certification:** Local records carry no TOP TIER status. The Stations header opens the [official Station Finder](https://stationfinder.toptiergas.com/) externally for address-level lookup. The link sends no search or location parameters. Per the [TOP TIER terms](https://www.toptiergas.com/terms-and-conditions/), obtain authorization for station data reuse and the pump decal before shipping badges. Match the exact site and fuel type against authorized records, with provenance and freshness. Prices and fuel grades are also unavailable.
+- **Certification:** Local records carry no TOP TIER status. The Stations header opens the [official Station Finder](https://stationfinder.toptiergas.com/) externally for address-level lookup. The link sends no search or location parameters. Per the [TOP TIER terms](https://www.toptiergas.com/terms-and-conditions/), obtain authorization for station data reuse and the pump decal before shipping badges. Match the exact site and fuel type against authorized records, with provenance and freshness. Prices are unavailable.
 
 To regenerate the catalog, download the extract from the source above, install `osmium==4.3.2` in a Python 3.13 environment, then run from `mobile/`:
 
 ```sh
 python tool/build_station_catalog.py /path/to/pennsylvania-latest.osm.pbf assets/stations/pennsylvania.json
 ```
+
+### Mapped fuel grades
+
+Station results show compact tiles for fuel tags explicitly marked `yes`
+on the same OpenStreetMap station record. The offline importer supports
+numeric octanes, including 94, plus selected gasoline categories, blends,
+and other fuels. Station details show the catalog source and snapshot date.
+These records may be partial or stale. A missing tag leaves availability
+unknown, and cards with no supported tags show **Fuel grades unavailable**.
+
+In the November 12, 2026 snapshot, 378 of 3,871 catalog records have at
+least one supported fuel tag. The current search filter surfaces 113 of
+1,450 results with mapped fuel data. No records in this snapshot list 94.
+Refresh grades by regenerating the catalog with the same command above.
+To verify on iPhone, open Stations, find a result with fuel tiles and tap
+it to check the mapped fuels and snapshot date. Check a result without
+fuel tags for the unavailable label.
+
+### DOE alternative fuels
+
+- **Source and rights:** The [U.S. DOT Alternative Fueling Stations dataset](https://catalog.data.gov/dataset/alternative-fueling-stations)
+  republishes DOE AFDC data under CC0. The importer uses the public ArcGIS
+  layer query with no key. FuelIQ bundles only matched IDs, fuel types,
+  and last-confirmed dates. The app makes no network calls for this data.
+- **Scope and matching:** Open, verified, unrestricted public Pennsylvania
+  records for E85, biodiesel, LPG, and CNG. Match a unique normalized
+  street address within 100 meters. Unmatched and ambiguous locations are
+  omitted. This feed does not provide gasoline octane.
+- **Snapshot:** November 13, 2026. 54 matches across the full catalog.
+  The current search filter surfaces two additional stations with E85.
+  Station details show DOE AFDC record IDs and last-confirmed dates.
+
+After refreshing the OSM catalog, run from `mobile/`:
+
+```sh
+python3 tool/build_afdc_matches.py assets/stations/pennsylvania.json assets/stations/pa_afdc_fuels.json
+```
+
+The manual refresh makes one query with a 25-second timeout and up to two
+backoff retries for transient errors. Follow any server Retry-After before
+rerunning. Partial responses fail before the bundled asset is replaced.
+To verify, open a matched station in Stations and check its E85 tile and
+the DOE AFDC source line in station details.
 
 ### Fuel reports
 

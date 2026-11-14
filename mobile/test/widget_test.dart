@@ -185,6 +185,9 @@ void main() {
         'assets/stations/pennsylvania.json' => ByteData.sublistView(
           Uint8List.fromList(fixture),
         ),
+        'assets/stations/pa_afdc_fuels.json' => ByteData.sublistView(
+          Uint8List.fromList(utf8.encode('{"stations":{}}')),
+        ),
         'assets/stations/toptier_gasoline_brands.json' => ByteData.sublistView(
           Uint8List.fromList(
             utf8.encode('{"brands":[{"match_keys":["shell"]}]}'),

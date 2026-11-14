@@ -119,6 +119,20 @@ class _StationDetailPageState extends State<StationDetailPage> {
                   'OpenStreetMap contributors · $catalogDate UTC',
                   style: body,
                 ),
+                const SizedBox(height: FuelTheme.compact),
+                Text(
+                  station.fuelGrades.isEmpty
+                      ? 'Fuel grades · Unavailable'
+                      : 'Reported fuels · ${station.fuelGrades.map((grade) => grade.description).join(', ')}',
+                  style: body,
+                ),
+                for (final fuel in station.afdcFuels) ...[
+                  const SizedBox(height: FuelTheme.compact),
+                  Text(
+                    '${fuel.label} · DOE AFDC #${fuel.id} · Confirmed ${fuel.confirmed}',
+                    style: body,
+                  ),
+                ],
               ],
             ),
           ),
@@ -223,7 +237,6 @@ class _StationDetailPageState extends State<StationDetailPage> {
                 ),
                 const SizedBox(height: FuelTheme.compact),
                 Text('Inspection outcomes · Unavailable', style: body),
-                Text('Fuel grades · Unavailable', style: body),
                 Text('Station TOP TIER status · Unavailable', style: body),
               ],
             ),

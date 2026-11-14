@@ -27,6 +27,12 @@ void main() {
                         '3100 W Liberty Ave',
                         0,
                         0,
+                        fuelGrades: [
+                          StationFuelGrade('Regular', 87),
+                          StationFuelGrade('Premium', 93),
+                          StationFuelGrade('Premium', 94),
+                          StationFuelGrade('Diesel'),
+                        ],
                       ),
                       miles: .44,
                       onPressed: () => opened = true,
@@ -80,6 +86,10 @@ void main() {
       expect(logo('getgo'), findsOneWidget);
       expect(find.byIcon(CupertinoIcons.drop), findsOneWidget);
       expect(find.text('0.44 mi'), findsOneWidget);
+      expect(find.text('Premium  93', findRichText: true), findsOneWidget);
+      expect(find.text('Premium  94', findRichText: true), findsOneWidget);
+      expect(find.text('Diesel', findRichText: true), findsOneWidget);
+      expect(find.text('Fuel grades unavailable'), findsNWidgets(3));
       expect(find.text('Address unavailable'), findsNothing);
       expect(find.text('Check TOP TIER™ status'), findsNothing);
       expect(find.text('Fuel report'), findsNWidgets(2));

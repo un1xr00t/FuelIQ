@@ -5,10 +5,25 @@ from collections import defaultdict
 import json
 import math
 from pathlib import Path
+import re
 
 import osmium
 
 SOURCE = "https://download.geofabrik.de/north-america/us/pennsylvania.html"
+OCTANE = re.compile(r"octane_[1-9][0-9]{1,2}")
+FUEL_TYPES = (
+    "regular", "midgrade", "premium", "gasoline", "petrol",
+    "diesel", "HGV_diesel", "biodiesel", "e10", "e15", "e85", "e0", "lpg", "cng",
+)
+
+
+def fuel_grades(tags):
+    octanes = sorted(
+        (tag.k[5:] for tag in tags
+         if tag.v == "yes" and tag.k.startswith("fuel:") and OCTANE.fullmatch(tag.k[5:])),
+        key=lambda key: int(key[7:]),
+    )
+    return octanes + [key for key in FUEL_TYPES if tags.get(f"fuel:{key}") == "yes"]
 
 
 def address(tags, *, full=False):
@@ -82,7 +97,7 @@ def station(obj, kind, identifier, latitude, longitude):
     tags = obj.tags
     if tags.get("amenity") != "fuel" or tags.get("access") in {"private", "no"}:
         return None
-    return {
+    record = {
         "id": f"{kind}/{identifier}",
         "name": tags.get("name") or tags.get("brand") or "Fuel station",
         "brand": tags.get("brand", ""),
@@ -90,6 +105,10 @@ def station(obj, kind, identifier, latitude, longitude):
         "latitude": round(latitude, 6),
         "longitude": round(longitude, 6),
     }
+    grades = fuel_grades(tags)
+    if grades:
+        record["fuelGrades"] = grades
+    return record
 
 
 def main():

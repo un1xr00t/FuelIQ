@@ -93,92 +93,106 @@ class StationCard extends StatelessWidget {
             ),
           );
 
+    final stationHeader = LayoutBuilder(
+      builder: (context, constraints) {
+        final stackDistance =
+            constraints.maxWidth < 260 ||
+            MediaQuery.textScalerOf(context).scale(17) > 23;
+        return Row(
+          children: [
+            ExcludeSemantics(
+              child: Container(
+                width: 54,
+                height: 54,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: logo == null
+                      ? FuelTheme.resolve(context, FuelTheme.accentSurface)
+                      : CupertinoColors.white,
+                ),
+                child: logo == null
+                    ? fallback
+                    : Image.asset(
+                        'assets/stations/logos/$logo.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stack) => key == 'bp'
+                            ? Image.asset(
+                                'assets/stations/logos/bp.png',
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stack) =>
+                                    fallback,
+                              )
+                            : fallback,
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    station.name,
+                    style: FuelTheme.rowTitle.copyWith(color: ink),
+                    maxLines: stackDistance ? null : 2,
+                    overflow: stackDistance ? null : TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    station.address,
+                    style: FuelTheme.body.copyWith(color: muted, fontSize: 14),
+                    maxLines: stackDistance ? null : 2,
+                    overflow: stackDistance ? null : TextOverflow.ellipsis,
+                  ),
+                  if (stackDistance && distance != null) ...[
+                    const SizedBox(height: 4),
+                    distance,
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            if (!stackDistance && distance != null) ...[
+              Container(
+                width: 1,
+                height: 32,
+                color: FuelTheme.resolve(context, FuelTheme.border),
+              ),
+              const SizedBox(width: 10),
+              distance,
+              const SizedBox(width: 10),
+            ],
+            ExcludeSemantics(
+              child: Icon(CupertinoIcons.chevron_right, color: muted, size: 13),
+            ),
+          ],
+        );
+      },
+    );
     final stationButton = CupertinoButton(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       onPressed: onPressed,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final stackDistance =
-              constraints.maxWidth < 260 ||
-              MediaQuery.textScalerOf(context).scale(17) > 23;
-          return Row(
-            children: [
-              ExcludeSemantics(
-                child: Container(
-                  width: 54,
-                  height: 54,
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: logo == null
-                        ? FuelTheme.resolve(context, FuelTheme.accentSurface)
-                        : CupertinoColors.white,
-                  ),
-                  child: logo == null
-                      ? fallback
-                      : Image.asset(
-                          'assets/stations/logos/$logo.png',
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stack) => key == 'bp'
-                              ? Image.asset(
-                                  'assets/stations/logos/bp.png',
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stack) =>
-                                      fallback,
-                                )
-                              : fallback,
-                        ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      station.name,
-                      style: FuelTheme.rowTitle.copyWith(color: ink),
-                      maxLines: stackDistance ? null : 2,
-                      overflow: stackDistance ? null : TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      station.address,
-                      style: FuelTheme.body.copyWith(
-                        color: muted,
-                        fontSize: 14,
-                      ),
-                      maxLines: stackDistance ? null : 2,
-                      overflow: stackDistance ? null : TextOverflow.ellipsis,
-                    ),
-                    if (stackDistance && distance != null) ...[
-                      const SizedBox(height: 4),
-                      distance,
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              if (!stackDistance && distance != null) ...[
-                Container(
-                  width: 1,
-                  height: 32,
-                  color: FuelTheme.resolve(context, FuelTheme.border),
-                ),
-                const SizedBox(width: 10),
-                distance,
-                const SizedBox(width: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          stationHeader,
+          const SizedBox(height: FuelTheme.compact),
+          if (station.fuelGrades.isEmpty)
+            Text(
+              'Fuel grades unavailable',
+              style: FuelTheme.body.copyWith(color: muted, fontSize: 12),
+            )
+          else
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final grade in station.fuelGrades)
+                  _FuelGradeTile(grade: grade),
               ],
-              ExcludeSemantics(
-                child: Icon(
-                  CupertinoIcons.chevron_right,
-                  color: muted,
-                  size: 13,
-                ),
-              ),
-            ],
-          );
-        },
+            ),
+        ],
       ),
     );
     final report = FuelReport.forBrand(station.brand);
@@ -206,6 +220,39 @@ class StationCard extends StatelessWidget {
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _FuelGradeTile extends StatelessWidget {
+  const _FuelGradeTile({required this.grade});
+
+  final StationFuelGrade grade;
+
+  @override
+  Widget build(BuildContext context) {
+    final ink = FuelTheme.resolve(context, FuelTheme.ink);
+    final muted = FuelTheme.resolve(context, FuelTheme.muted);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: FuelTheme.resolve(context, FuelTheme.border)),
+        color: FuelTheme.resolve(context, FuelTheme.surface),
+      ),
+      child: Text.rich(
+        TextSpan(
+          text: grade.label,
+          children: [
+            if (grade.octane case final octane?)
+              TextSpan(
+                text: '  $octane',
+                style: TextStyle(color: ink, fontWeight: FontWeight.w700),
+              ),
+          ],
+        ),
+        style: FuelTheme.body.copyWith(color: muted, fontSize: 12),
+      ),
     );
   }
 }

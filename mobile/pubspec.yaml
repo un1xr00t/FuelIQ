@@ -55,5 +55,6 @@ flutter:
   assets:
     - assets/stations/pennsylvania.json
     - assets/stations/pa_dep_pilot.json
+    - assets/stations/pa_afdc_fuels.json
     - assets/stations/toptier_gasoline_brands.json
     - assets/stations/logos/
