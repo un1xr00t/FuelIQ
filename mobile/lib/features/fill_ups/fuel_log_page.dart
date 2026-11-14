@@ -229,6 +229,13 @@ class _FillUpEditorState extends State<_FillUpEditor> {
   late DateTime _date = widget.entry?.date.toLocal() ?? DateTime.now();
   bool _dateEdited = false;
   bool get _hideStationAddresses => widget.store.data.hideStationAddresses;
+  late String? _selectedStationId = widget.entry?.stationId;
+  late String? _selectedStationBrand = widget.entry?.stationBrand;
+
+  bool get _keepsStationSelection =>
+      _station.text.trim() ==
+      _stationDisplay(_selectedStationLabel, _hideStationAddresses);
+
   late String? _selectedStationLabel = widget.entry?.station;
   late final _station = TextEditingController(
     text: _stationDisplay(_selectedStationLabel, _hideStationAddresses),
@@ -236,10 +243,33 @@ class _FillUpEditorState extends State<_FillUpEditor> {
 
   String get _stationToSave {
     final entered = _station.text.trim();
-    return entered ==
-            _stationDisplay(_selectedStationLabel, _hideStationAddresses)
-        ? _selectedStationLabel ?? entered
-        : entered;
+    return _keepsStationSelection ? _selectedStationLabel ?? entered : entered;
+  }
+
+  void _selectStation(Station station) {
+    setState(() {
+      _selectedStationId = station.id;
+      final brand = station.brand.trim();
+      _selectedStationBrand =
+          brand.isEmpty || brand.toLowerCase() == 'none' || brand.length > 100
+          ? null
+          : brand;
+      _selectedStationLabel = _catalogStationLabel(station);
+      _station.text = _stationDisplay(
+        _selectedStationLabel,
+        _hideStationAddresses,
+      )!;
+    });
+  }
+
+  Future<void> _findStation() async {
+    final catalog = StationCatalog.load();
+    final station = await Navigator.of(context).push<Station>(
+      CupertinoPageRoute(
+        builder: (context) => _StationPicker(catalog: catalog),
+      ),
+    );
+    if (mounted && station != null) _selectStation(station);
   }
 
   List<Station> _stationSuggestions = const [];
@@ -700,6 +730,8 @@ class _FillUpEditorState extends State<_FillUpEditor> {
         odometer: odometer,
         octane: octane,
         station: _stationToSave,
+        stationId: _keepsStationSelection ? _selectedStationId : null,
+        stationBrand: _keepsStationSelection ? _selectedStationBrand : null,
       ),
     );
   }
@@ -830,6 +862,11 @@ class _FillUpEditorState extends State<_FillUpEditor> {
               controller: _station,
               maxLength: 250,
             ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: disabled ? null : _findStation,
+              child: const Text('Find a Pennsylvania station'),
+            ),
             if (_stationSuggestions.isNotEmpty) ...[
               Text(
                 'Nearby stations from photo location',
@@ -846,17 +883,10 @@ class _FillUpEditorState extends State<_FillUpEditor> {
                       _StationSuggestionRow(
                         station: station,
                         selected:
-                            _stationToSave == _catalogStationLabel(station),
+                            _keepsStationSelection &&
+                            _selectedStationId == station.id,
                         hideAddress: _hideStationAddresses,
-                        onSelected: () {
-                          _selectedStationLabel = _catalogStationLabel(station);
-                          _station.text = _stationDisplay(
-                            _selectedStationLabel,
-                            _hideStationAddresses,
-                          )!;
-                          // Refresh selection when two stations share a name.
-                          setState(() {});
-                        },
+                        onSelected: () => _selectStation(station),
                         enabled: !disabled,
                       ),
                   ],
@@ -1018,4 +1048,56 @@ class _StationSuggestionRow extends StatelessWidget {
       ),
     );
   }
+}
+
+class _StationPicker extends StatefulWidget {
+  const _StationPicker({required this.catalog});
+
+  final Future<StationCatalog> catalog;
+
+  @override
+  State<_StationPicker> createState() => _StationPickerState();
+}
+
+class _StationPickerState extends State<_StationPicker> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) => FuelPage(
+    title: 'Find a station',
+    children: [
+      CupertinoSearchTextField(
+        placeholder: 'Name, address or ZIP',
+        onChanged: (value) => setState(() => _query = value.trim()),
+      ),
+      const SizedBox(height: FuelTheme.compact),
+      FutureBuilder<StationCatalog>(
+        future: widget.catalog,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Text('Station catalog unavailable.');
+          }
+          final catalog = snapshot.data;
+          if (catalog == null) return const CupertinoActivityIndicator();
+          if (_query.isEmpty) return const SizedBox.shrink();
+          final results = catalog.search(_query).take(20).toList();
+          if (results.isEmpty) return const Text('No matching stations.');
+          return Column(
+            children: [
+              for (final result in results)
+                _StationSuggestionRow(
+                  station: result.station,
+                  selected: false,
+                  hideAddress: false,
+                  onSelected: () => Navigator.pop(context, result.station),
+                  enabled: true,
+                ),
+              if (results.length == 20)
+                const Text('Refine your search to narrow the results.'),
+            ],
+          );
+        },
+      ),
+    ],
+  );
 }

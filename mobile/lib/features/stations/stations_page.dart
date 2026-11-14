@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
+import '../../data/fuel_store.dart';
 import '../../design_system/fuel_page.dart';
 import '../../design_system/fuel_theme.dart';
 import 'station_card.dart';
@@ -8,7 +9,9 @@ import 'station_catalog.dart';
 import 'station_detail_page.dart';
 
 class StationsPage extends StatefulWidget {
-  const StationsPage({super.key});
+  const StationsPage({super.key, required this.store});
+
+  final FuelStore store;
 
   @override
   State<StationsPage> createState() => _StationsPageState();
@@ -189,6 +192,7 @@ class _StationsPageState extends State<StationsPage> {
                                 CupertinoPageRoute<void>(
                                   builder: (context) => StationDetailPage(
                                     station: result.station,
+                                    store: widget.store,
                                     catalogDate: catalog!.asOf,
                                     openDirections: () =>
                                         _openAppleMaps(result.station),

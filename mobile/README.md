@@ -26,6 +26,23 @@ Garage and Fuel Log use Journal Intelligence V2’s inline photo picker on iOS 1
 
 In **Settings → Claude Vision API key**, save your personal Anthropic API key to enable Haiku 5.5 for Fuel Log scans. Settings shows when the key is saved in iOS Keychain. After relaunching FuelIQ on the same iPhone, open Settings again to verify the saved status. If a Keychain read fails, unlock the iPhone and retry. Selected images are resized and re-encoded before they are sent together to Anthropic. The original EXIF capture date is processed on the phone. Each request uses your Anthropic API account. Remove the key in Settings to make local OCR available by explicit choice when starting a scan. The review screen identifies which reader ran. The Mac benchmark reads its key separately from `~/.config/fueliq/anthropic_api_key`.
 
+## Fuel breakdown and station history
+
+Confirm a photo-based suggestion or use **Find a Pennsylvania station** in
+Fuel Log to link an entry to a catalog station. Station details show the
+last logged unit price and five most recent linked fill-ups. Typed station
+labels and older entries work as before. Edit an older entry and pick a
+catalog station to include it in station history and brand comparisons.
+
+Home’s **Fuel breakdown** follows the vehicle filter and groups all-time
+spending and volume-weighted average price by AKI or catalog brand. The
+premium price gap compares 87 AKI with 91–94 AKI for the same vehicle,
+station, and local calendar month. Its estimated spending difference uses
+the observed regular price at the volume of premium purchased. MPG and fuel
+cost per mile use completed full-to-full intervals and include partial
+fill-ups within those intervals. Keep consecutive fill-ups logged for
+meaningful mileage estimates.
+
 ## Back up and restore
 
 Use **Settings → Backup → Export backup** and choose a folder in iCloud Drive outside the app. Check that the file appears in Files. Each export is a manual snapshot of your fill-ups, Garage profiles and vehicle photos, and app preferences. Export again after changes you want to keep. The JSON file can contain station addresses and vehicle photos, so save it in a private folder. The Claude key stays in Keychain.
@@ -82,7 +99,7 @@ source link. Go back and tap the address to open **Station details**.
 
 ### Station logo sources
 
-Local PNG thumbnails use the following Wikimedia Commons files, marked public domain for copyright on their source pages. Brand marks identify listed stations. Named stations without matching artwork use initials. Generic or unnamed listings use a fuel icon. BP uses the simplified text logo.
+Most local PNG thumbnails use Wikimedia Commons files marked public domain for copyright on their source pages. The Shell thumbnail uses the official press artwork, resized to fit the station card. Brand marks identify listed stations. Named stations without matching artwork use initials. Generic or unnamed listings use a fuel icon. BP uses the simplified text logo.
 
 The local private build can load `bp-helios.png`, `getgo.png`, and `top-tier.png` from `assets/stations/logos/`. These files are git-ignored. The BP artwork comes from a [BP report](https://assets.publishing.service.gov.uk/media/5cecfc92ed915d247844b6e5/Schiehallion___Loyal_Phase_One_Close_Out_Report.pdf), GetGo from its [official site](https://www.getgocafe.com/), and the TOP TIER gasoline decal from the [official pump decal page](https://retailers.toptiergas.com/product/top-tier-pump-decals/). The decal identifies the official finder link. Amoco uses the [torch-and-oval artwork](https://seeklogo.com/vector-logo/429699/amoco) in a git-ignored private thumbnail.
 
@@ -105,7 +122,7 @@ The local private build can load `bp-helios.png`, `getgo.png`, and `top-tier.png
 - `rutters.png` · [Rutter's Logo.png](https://commons.wikimedia.org/wiki/File:Rutter%27s_Logo.png)
 - `sams-club.png` · [Sam's Club logo 2026.svg](https://commons.wikimedia.org/wiki/File:Sam%27s_Club_logo_2026.svg)
 - `sheetz.png` · [Sheetz logo (2024).svg](https://commons.wikimedia.org/wiki/File:Sheetz_logo_%282024%29.svg)
-- `shell.png` · [Shell 1971 wordmark.svg](https://commons.wikimedia.org/wiki/File:Shell_1971_wordmark.svg)
+- `shell.png` · [Shell Pecten press artwork and usage guidelines](https://www.shell.dk/press/shell-logo/download.html)
 - `speedway.png` · [Speedway LLC logo.svg](https://commons.wikimedia.org/wiki/File:Speedway_LLC_logo.svg)
 - `sunoco.png` · [Sunoco 1999 logo.svg](https://commons.wikimedia.org/wiki/File:Sunoco_1999_logo.svg)
 - `ta.png` · [TravelCenters of America logo.svg](https://commons.wikimedia.org/wiki/File:TravelCenters_of_America_logo.svg)

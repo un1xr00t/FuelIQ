@@ -153,7 +153,8 @@ class FuelStore extends ChangeNotifier {
                 (entry.octane != null && !isUsOctane(entry.octane!)) ||
                 (entry.odometer != null &&
                     (entry.odometer! < 0 || entry.odometer! > 9999999)) ||
-                (entry.station?.length ?? 0) > 250,
+                (entry.station?.length ?? 0) > 250 ||
+                !validStationIdentity(entry.stationId, entry.stationBrand),
           )) {
         throw const FormatException('Invalid backup records.');
       }
@@ -252,9 +253,12 @@ class FuelStore extends ChangeNotifier {
     int? odometer,
     int? octane,
     String? station,
+    String? stationId,
+    String? stationBrand,
   }) async {
     final stationLabel = station?.trim();
     if ((stationLabel?.length ?? 0) > 250 ||
+        !validStationIdentity(stationId, stationBrand) ||
         data.vehicle(vehicleId) == null ||
         volume <= 0 ||
         volume > 999999 ||
@@ -277,6 +281,8 @@ class FuelStore extends ChangeNotifier {
       full: full,
       odometer: odometer,
       octane: octane,
+      stationId: stationId,
+      stationBrand: stationBrand,
       station: stationLabel == null || stationLabel.isEmpty
           ? null
           : stationLabel,

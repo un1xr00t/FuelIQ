@@ -48,6 +48,8 @@ class FillUp {
     this.odometer,
     this.octane,
     this.station,
+    this.stationId,
+    this.stationBrand,
   });
 
   final int id;
@@ -60,6 +62,8 @@ class FillUp {
   final int? odometer;
   final int? octane;
   final String? station;
+  final String? stationId;
+  final String? stationBrand;
 
   factory FillUp.fromJson(Map<String, Object?> json) => FillUp(
     id: json['id'] as int,
@@ -72,6 +76,8 @@ class FillUp {
     odometer: json['odometer'] as int?,
     octane: json['octane'] as int?,
     station: json['station'] as String?,
+    stationId: json['stationId'] as String?,
+    stationBrand: json['stationBrand'] as String?,
   );
 
   Map<String, Object?> toJson() => {
@@ -85,6 +91,8 @@ class FillUp {
     'odometer': odometer,
     if (octane != null) 'octane': octane,
     if (station != null) 'station': station,
+    if (stationId != null) 'stationId': stationId,
+    if (stationBrand != null) 'stationBrand': stationBrand,
   };
 
   int get expectedTotal => (volume * price + 5000) ~/ 10000;
@@ -116,3 +124,8 @@ String fixed(int value, int places) {
 }
 
 String dollars(int cents) => '\$${fixed(cents, 2)}';
+
+bool validStationIdentity(String? id, String? brand) => id == null
+    ? brand == null
+    : RegExp(r'^(node|way|relation)/[1-9][0-9]*$').hasMatch(id) &&
+          (brand == null || (brand.trim().isNotEmpty && brand.length <= 100));

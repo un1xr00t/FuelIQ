@@ -130,7 +130,7 @@ class _AppShellState extends State<_AppShell> {
             openFuelLog: () => _open(_Destination.fuelLog),
             openStations: () => _open(_Destination.stations),
           ),
-          _Destination.stations => const StationsPage(),
+          _Destination.stations => StationsPage(store: widget.store),
           _Destination.fuelLog => FuelLogPage(
             store: widget.store,
             openGarage: () => _open(_Destination.garage),

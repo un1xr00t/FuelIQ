@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import '../../data/fuel_insights.dart';
 import '../../data/fuel_records.dart';
 import '../../data/fuel_store.dart';
 import '../../data/fuel_summary.dart';
@@ -166,7 +167,16 @@ class _HomePageState extends State<HomePage> {
                   ),
           ),
           const SizedBox(height: FuelTheme.gap),
-
+          if (summary.count > 0) ...[
+            _FuelBreakdown(
+              insights: FuelInsights(
+                data.fillUps,
+                now: now,
+                vehicleId: vehicle?.id,
+              ),
+            ),
+            const SizedBox(height: FuelTheme.gap),
+          ],
           FuelSurface(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -456,4 +466,105 @@ class _ActivityMetric extends StatelessWidget {
       Text(value, style: amount),
     ],
   );
+}
+
+class _FuelBreakdown extends StatefulWidget {
+  const _FuelBreakdown({required this.insights});
+
+  final FuelInsights insights;
+
+  @override
+  State<_FuelBreakdown> createState() => _FuelBreakdownState();
+}
+
+class _FuelBreakdownState extends State<_FuelBreakdown> {
+  bool _byBrand = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final insights = widget.insights;
+    final octanes = insights.byOctane.keys.whereType<int>().toList()..sort();
+    final brands = insights.byBrand.keys.toList()
+      ..sort(
+        (a, b) => insights.byBrand[b]!.spending.compareTo(
+          insights.byBrand[a]!.spending,
+        ),
+      );
+    final rows = _byBrand
+        ? {for (final brand in brands) brand: insights.byBrand[brand]!}
+        : {
+            for (final octane in octanes)
+              '$octane AKI': insights.byOctane[octane]!,
+            'Grade unavailable': ?insights.byOctane[null],
+          };
+    final gap = insights.premiumGap;
+    final mpg = insights.mpg;
+    final cost = insights.centsPerMile;
+    final body = FuelTheme.body.copyWith(
+      color: FuelTheme.resolve(context, FuelTheme.muted),
+    );
+    return FuelSurface(
+      child: Padding(
+        padding: const EdgeInsets.all(FuelTheme.inset),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Fuel breakdown', style: FuelTheme.heading),
+            const SizedBox(height: FuelTheme.compact),
+            Text('All-time · Spending and average price paid', style: body),
+            const SizedBox(height: FuelTheme.compact),
+            CupertinoSlidingSegmentedControl<bool>(
+              groupValue: _byBrand,
+              children: const {false: Text('Grade'), true: Text('Brand')},
+              onValueChanged: (value) {
+                if (value != null) setState(() => _byBrand = value);
+              },
+            ),
+            for (final row in rows.entries)
+              Padding(
+                padding: const EdgeInsets.only(top: FuelTheme.gap),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(row.key, style: FuelTheme.rowTitle),
+                    Text(
+                      '${dollars(row.value.spending)} spent · ${dollars(row.value.centsPerGallon)}/gal',
+                      style: body,
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: FuelTheme.gap),
+            const Text('Premium price gap', style: FuelTheme.rowTitle),
+            if (gap == null)
+              Text(
+                'Compare 87 AKI and 91–94 AKI fill-ups for the same vehicle, station, and month.',
+                style: body,
+              )
+            else ...[
+              Text(
+                gap == 0
+                    ? 'Same average price per gallon'
+                    : '${dollars(gap.abs())}/gal ${gap > 0 ? 'more' : 'less'} for premium',
+                style: body,
+              ),
+              Text(
+                'Estimated difference · ${insights.premiumDifference < 0 ? '−' : ''}${dollars(insights.premiumDifference.abs())}'
+                ' across ${fixed(insights.comparedPremiumVolume, 3)} comparable premium gallons',
+                style: body,
+              ),
+            ],
+            const SizedBox(height: FuelTheme.gap),
+            const Text('Fuel economy', style: FuelTheme.rowTitle),
+            Text(
+              mpg == null || cost == null
+                  ? 'Log full tanks with odometer readings to see MPG and fuel cost per mile.'
+                  : '${mpg.toStringAsFixed(1)} MPG · ${dollars(cost)}/mi in fuel',
+              style: body,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

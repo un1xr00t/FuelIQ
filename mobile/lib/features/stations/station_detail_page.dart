@@ -3,19 +3,25 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
+import '../../data/fuel_records.dart';
+import '../../data/fuel_store.dart';
 import '../../design_system/fuel_page.dart';
 import '../../design_system/fuel_theme.dart';
+import '../fuel_research/fuel_report.dart';
+import '../fuel_research/fuel_report_page.dart';
 import 'station_catalog.dart';
 
 class StationDetailPage extends StatefulWidget {
   const StationDetailPage({
     super.key,
     required this.station,
+    required this.store,
     required this.catalogDate,
     required this.openDirections,
   });
 
   final Station station;
+  final FuelStore store;
   final DateTime catalogDate;
   final VoidCallback openDirections;
 
@@ -86,6 +92,7 @@ class _StationDetailPageState extends State<StationDetailPage> {
   @override
   Widget build(BuildContext context) {
     final station = widget.station;
+    final report = FuelReport.forBrand(station.brand);
     final catalogDate = widget.catalogDate
         .toUtc()
         .toIso8601String()
@@ -117,11 +124,69 @@ class _StationDetailPageState extends State<StationDetailPage> {
           ),
         ),
         const SizedBox(height: FuelTheme.gap),
+        if (report != null)
+          CupertinoButton(
+            onPressed: () => Navigator.of(context).push(
+              CupertinoPageRoute<void>(
+                builder: (context) => FuelReportPage(report: report),
+              ),
+            ),
+            child: const Text('Fuel report'),
+          ),
         FuelAction(
           label: 'Open in Apple Maps',
           onPressed: widget.openDirections,
         ),
         const SizedBox(height: FuelTheme.gap),
+        ListenableBuilder(
+          listenable: widget.store,
+          builder: (context, _) {
+            final entries =
+                widget.store.data.fillUps
+                    .where((entry) => entry.stationId == station.id)
+                    .toList()
+                  ..sort((a, b) {
+                    final date = b.date.compareTo(a.date);
+                    return date == 0 ? b.id.compareTo(a.id) : date;
+                  });
+            if (entries.isEmpty) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(bottom: FuelTheme.gap),
+              child: FuelSurface(
+                child: Padding(
+                  padding: const EdgeInsets.all(FuelTheme.inset),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Your fill-ups here', style: title),
+                      const SizedBox(height: FuelTheme.compact),
+                      Text(
+                        'Last price paid · \$${fixed(entries.first.price, 3)}/gal',
+                        style: body,
+                      ),
+                      for (final entry in entries.take(5))
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            top: FuelTheme.compact,
+                          ),
+                          child: Text(
+                            '${CupertinoLocalizations.of(context).datePickerMediumDate(entry.date.toLocal())}'
+                            ' · ${fixed(entry.volume, 3)} gal · ${dollars(entry.total)}',
+                            style: body,
+                          ),
+                        ),
+                      if (entries.length > 5)
+                        Text(
+                          'Showing the 5 most recent of ${entries.length} fill-ups.',
+                          style: body,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
         FuelSurface(
           child: Padding(
             padding: const EdgeInsets.all(FuelTheme.inset),
